@@ -13,8 +13,29 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      fontFamily: {
+        uber_move: ["ubermove", "sans-serif"],
+      },
+    },
+    scrollbar: {
+      // Example thin scrollbar for light mode
+      thin: {
+        track: "bg-black",
+        thumb: "bg-gray-400 hover:bg-gray-500",
+      },
+      // Example thin scrollbar for dark mode (if using)
+      "thin-dark": {
+        track: "bg-transparent",
+        thumb: "bg-gray-600 hover:bg-gray-500",
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require("daisyui"),
+    require("tailwind-scrollbar")({ nocompatible: true }),
+  ],
+  daisyui: {
+    themes: ["winter"],
+  },
 };
 export default config;
