@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="winter">
-      <body className="font-uber_move">{children}</body>
+      <body className="font-uber_move overflow-hidden">{children}</body>
     </html>
   );
 }
