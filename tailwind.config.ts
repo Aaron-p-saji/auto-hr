@@ -16,6 +16,12 @@ const config: Config = {
       fontFamily: {
         uber_move: ["ubermove", "sans-serif"],
       },
+      scale: {
+        "60": "0.60",
+        "75": "0.75",
+        "50": "0.50",
+        "40": "0.40",
+      },
     },
     scrollbar: {
       // Example thin scrollbar for light mode

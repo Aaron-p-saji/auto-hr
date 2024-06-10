@@ -25,7 +25,7 @@ const Page = (props: Props) => {
     setFiles(files.filter((file, i) => i !== index));
   };
   return (
-    <div className="text-black w-full">
+    <div className="text-black ml-[10%] w-[80%] mt-[10vh]">
       <form className="w-full">
         <div className="grid grid-cols-1 grid-rows-10">
           {/* Recipient */}

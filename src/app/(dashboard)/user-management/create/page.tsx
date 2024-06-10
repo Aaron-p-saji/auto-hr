@@ -176,7 +176,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   //   };
 
   return (
-    <div className="w-[90%] h-full text-black">
+    <div className="h-full mt-[10vh] text-black ml-[10%] w-[80%]">
       {isAlert && (
         <div className="toast toast-top toast-center !w-[10vw]">
           <div className="alert alert-error w-full">

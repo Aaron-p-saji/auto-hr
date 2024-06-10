@@ -8,10 +8,12 @@ import Link from "next/link";
 // import { logout } from "@/functions/auth";
 import { boolean, string } from "zod";
 import { User } from "lucide-react";
+import { logout } from "@/functions/auth";
 
 type Props = {};
 
 const raleway = Raleway({ weight: "900", subsets: ["latin"] });
+const raleway_500 = Raleway({ weight: "700", subsets: ["latin"] });
 
 const Sidebar = (props: Props) => {
   //   const { first_name, email } = useUserStore();
@@ -19,7 +21,7 @@ const Sidebar = (props: Props) => {
   const pathname = usePathname();
   const navlinks = [
     { name: "User Management", link: "/user-management", adminOnly: true },
-    { name: "MailSuite", link: "/doc-suite", adminOnly: true },
+    { name: "MailSuite", link: "/mail-suite", adminOnly: true },
   ];
   useEffect(() => {});
   return (
@@ -90,18 +92,22 @@ const Sidebar = (props: Props) => {
               tabIndex={0}
               className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
-              <li>{/* <span onClick={logout}>Logout</span> */}</li> {/**WIP */}
               <li>
-                <a>Item 2</a>
+                <span onClick={logout}>Logout</span>
               </li>
             </ul>
           </div>
 
           <div>
-            <p className="text-xs lg:block hidden">
-              {/* <strong className="block font-medium">{first_name}</strong> */}{" "}
-              WIP
-              {/* <span> {email} </span> */} WIP
+            <p className="text-xs flex space-x-2 items-center justify-center">
+              <strong className={`block font-bold ${raleway.className}`}>
+                Administrator
+              </strong>
+              <span
+                className={`badge badge-ghost badge-sm bg-red-500 text-white text-[10px] ${raleway_500.className}`}
+              >
+                Admin
+              </span>
             </p>
           </div>
         </div>

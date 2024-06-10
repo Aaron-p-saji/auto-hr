@@ -1,0 +1,36 @@
+.pattern {
+  width: 100%;
+  height: 100%;
+  /* Add your background pattern here */
+  background-color: #b5b5b5;
+  background-image: radial-gradient(rgba(12, 12, 12, 0.171) 2px, transparent 0);
+  background-size: 30px 30px;
+  background-position: -5px -5px;
+}
+
+.text_animate {
+  animation: boxEnter 1s ease-in-out;
+  animation-iteration-count: 1;
+}
+@keyframes boxEnter {
+  0% {
+    transform: translateY(-100px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.text_animate_end {
+  animation: boxEnterEnd 1s ease-in-out;
+  animation-iteration-count: 1;
+  transform: translateY(-100px);
+}
+@keyframes boxEnterEnd {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100px);
+  }
+}

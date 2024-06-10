@@ -1,10 +1,48 @@
 "use client";
+import { login } from "@/functions/auth";
+import { useAuthStore } from "@/providers/context";
+import { LoginFields, loginSchema } from "@/providers/zodTypes";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function Home() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFields>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const loginFunction = async (data: {
+    username: string;
+    password: string;
+  }) => {
+    try {
+      setIsLoading(true);
+      const res = await login(data.username, data.password);
+      if (res) {
+        router.push("/user-management");
+      } else {
+        setError("Invalid Credentials");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (useAuthStore.getState().token) {
+      router.replace("/user-management");
+    }
+  }, [router]);
   return (
     <main className="flex min-h-screen w-screen flex-col justify-between">
       <div className="bg-white py-6 sm:py-8 lg:py-12">
@@ -15,26 +53,27 @@ export default function Home() {
 
           <form
             className="mx-auto max-w-lg rounded-lg border"
-            // onSubmit={handleSubmit(loginFunction)}
+            onSubmit={handleSubmit(loginFunction)}
           >
             <div className="flex flex-col gap-4 p-4 md:p-8">
               <div>
                 <label className="form-control w-full">
                   <div className="label">
-                    <span className="label-text">Email</span>
+                    <span className="label-text">Username</span>
                   </div>
                   <input
-                    type="email"
-                    placeholder="admin@testnetwork.com"
+                    type="text"
+                    placeholder="administrator"
+                    autoComplete="username"
                     className="input input-bordered w-full"
-                    // {...register("email")}
+                    {...register("username")}
                   />
                   <div className="label">
-                    {/* {errors.email && (
+                    {errors.username && (
                       <span className="label-text-alt text-red-500">
-                        {errors.email.message}
+                        {errors.username.message}
                       </span>
-                    )} */}
+                    )}
                   </div>
                 </label>
               </div>
@@ -48,15 +87,15 @@ export default function Home() {
                     type="password"
                     placeholder="••••••••"
                     className="input input-bordered w-full"
-                    // {...register("password")}
+                    {...register("password")}
                   />
                 </label>
                 <div className="label">
-                  {/* {errors.password && (
+                  {errors.password && (
                     <span className="label-text-alt text-red-500">
                       {errors.password.message}
                     </span>
-                  )} */}
+                  )}
                 </div>
               </div>
 
