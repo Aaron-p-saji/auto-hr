@@ -9,6 +9,7 @@ type Props = {
   certiList: Array<certificate>;
   isLoading: Boolean;
   onClick: any;
+  selectedId: certificate | null;
 };
 
 type DropdownMenuProps = {
@@ -111,7 +112,7 @@ const DropdownMenu = ({
     : null;
 };
 
-const Tables = ({ certiList, isLoading, onClick }: Props) => {
+const Tables = ({ certiList, isLoading, onClick, selectedId }: Props) => {
   const [open, setOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -149,7 +150,23 @@ const Tables = ({ certiList, isLoading, onClick }: Props) => {
                   className="hover:bg-[#a0a0a098] transition-all"
                   onClick={(e) => {
                     e.preventDefault();
-                    onClick(value.id);
+                    console.log(selectedId);
+                    console.log(value);
+                    if (selectedId !== null) {
+                      if (selectedId.id !== value.id) {
+                        onClick({
+                          id: value.id,
+                          filename: value.filename,
+                        });
+                      } else {
+                        onClick(null);
+                      }
+                    } else {
+                      onClick({
+                        id: value.id,
+                        filename: value.filename,
+                      });
+                    }
                   }}
                 >
                   <td>{index + 1}</td>

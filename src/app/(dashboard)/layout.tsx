@@ -10,7 +10,7 @@ const layout = ({ children }: Props) => {
     <div className="flex">
       <Sidebar />
       <div className="flex justify-center w-full">
-        <div className="flex w-full">{children}</div>
+        <div className="flex w-full overflow-y-scroll h-full">{children}</div>
       </div>
     </div>
   );

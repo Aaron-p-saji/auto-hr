@@ -99,7 +99,7 @@ const Sidebar = (props: Props) => {
           </div>
 
           <div>
-            <p className="text-xs flex space-x-2 items-center justify-center">
+            <p className="text-xs hidden space-x-2 items-center justify-center lg:flex">
               <strong className={`block font-bold ${raleway.className}`}>
                 Administrator
               </strong>
