@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.pattern {
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(rgba(12, 12, 12, 0.171) 2px, transparent 0);
+  background-size: 30px 30px;
+  background-position: -5px -5px;
+}
+
+.text_animate {
+  animation: boxEnter 1s ease-in-out;
+  animation-iteration-count: 1;
+}
+@keyframes boxEnter {
+  0% {
+    transform: translateY(-100px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.text_animate_end {
+  animation: boxEnterEnd 1s ease-in-out;
+  animation-iteration-count: 1;
+  transform: translateY(-100px);
+}
+@keyframes boxEnterEnd {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100px);
+  }
+}
+/* page.css */
+.ql-editor {
+  font-family: "Open Sans", sans-serif; /* Apply Open Sans or desired font */
+  font-size: 16px; /* Adjust font size as needed */
+  @apply scrollbar scrollbar-w-1 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2;
+}
+
+.quill-content {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333; /* Adjust color as needed */
+}
+
+/* Ensure Quill toolbar styles are applied */
+.ql-toolbar {
+  border: none; /* Example border style for toolbar */
+  border-radius: 18px 18px 0px 0px;
+}
+
+.ql-toolbar.ql-snow {
+  border-bottom: 0px !important;
+}
+
+/* Additional styles for specific elements */
+.quill-content p {
+  margin-bottom: 10px;
+}
+
+.ql-container.ql-snow {
+  border-radius: 0 0 18px 18px;
+  @apply pb-5;
+}
+
+.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  border-radius: 10px;
+}
+
+.ql-toolbar.ql-snow .ql-picker .ql-picker-options {
+  @apply mt-1;
+}
+
+/* Adjust as per your design requirements */
+.newtons-cradle {
+  --uib-size: 50px;
+  --uib-speed: 1.2s;
+  --uib-color: #474554;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--uib-size);
+  height: var(--uib-size);
+}
+
+.newtons-cradle__dot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: 25%;
+  transform-origin: center top;
+}
+
+.newtons-cradle__dot::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 25%;
+  border-radius: 50%;
+  background-color: var(--uib-color);
+}
+
+.newtons-cradle__dot:first-child {
+  animation: swing var(--uib-speed) linear infinite;
+}
+
+.newtons-cradle__dot:last-child {
+  animation: swing2 var(--uib-speed) linear infinite;
+}
+
+@keyframes swing {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
+  }
+
+  25% {
+    transform: rotate(70deg);
+    animation-timing-function: ease-in;
+  }
+
+  50% {
+    transform: rotate(0deg);
+    animation-timing-function: linear;
+  }
+}
+
+@keyframes swing2 {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: linear;
+  }
+
+  50% {
+    transform: rotate(0deg);
+    animation-timing-function: ease-out;
+  }
+
+  75% {
+    transform: rotate(-70deg);
+    animation-timing-function: ease-in;
+  }
+}

@@ -14,7 +14,7 @@ type RegisterFields = {
   first_name: string;
   last_name: string;
   email: string;
-  username: string;
+  phone: string;
   password: string;
   send_email: boolean;
   userType: string;
@@ -27,7 +27,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
     first_name: "",
     last_name: "",
     email: "",
-    username: "",
+    phone: "",
     password: "",
     send_email: true,
     userType: "user",
@@ -37,54 +37,6 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
 
-  const validatePassword = (password: string): boolean => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (password.length < minLength) {
-      setPasswordError("Password must be at least 8 characters long.");
-      return false;
-    }
-    if (!hasUpperCase) {
-      setPasswordError("Password must contain at least one uppercase letter.");
-      return false;
-    }
-    if (!hasLowerCase) {
-      setPasswordError("Password must contain at least one lowercase letter.");
-      return false;
-    }
-    if (!hasNumber) {
-      setPasswordError("Password must contain at least one number.");
-      return false;
-    }
-    if (!hasSpecialChar) {
-      setPasswordError("Password must contain at least one special character.");
-      return false;
-    }
-
-    setPasswordError(null);
-    return true;
-  };
-
-  const checkUsernameExists = async (username: string) => {
-    const response = await axios.get(
-      "http://localhost:8000/api/check_username/",
-      {
-        params: {
-          username: username,
-        },
-      }
-    );
-    if (response.status === 200) {
-      return response.data.exists;
-    } else {
-      console.log(response + " Internal server error");
-    }
-  };
-
   const checkEmailExists = async (email: string) => {
     const response = await axios.get("http://localhost:8000/api/check_email/", {
       params: {
@@ -93,25 +45,10 @@ const CreateUser: React.FC<Props> = (props: Props) => {
     });
     if (response.status === 200) {
       return response.data.exists;
-    } else {
-      console.log(response + " Internal server error");
     }
   };
 
   useEffect(() => {
-    if (data.username) {
-      const timeoutId = setTimeout(async () => {
-        const exists = await checkUsernameExists(data.username);
-        if (exists) {
-          setUsernameError("Username already exists.");
-        } else {
-          setUsernameError(null);
-        }
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    }
-
     if (data.email) {
       const timeoutId = setTimeout(async () => {
         const exists = await checkEmailExists(data.email);
@@ -121,10 +58,9 @@ const CreateUser: React.FC<Props> = (props: Props) => {
           setEmailError(null);
         }
       }, 500);
-
       return () => clearTimeout(timeoutId);
     }
-  }, [data.username, data.email]);
+  }, [data.email]);
 
   //   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
   //     e.preventDefault();
@@ -176,7 +112,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   //   };
 
   return (
-    <div className="w-[90%] h-full text-black">
+    <div className="h-full mt-[10vh] text-black ml-[10%] w-[80%]">
       {isAlert && (
         <div className="toast toast-top toast-center !w-[10vw]">
           <div className="alert alert-error w-full">
@@ -272,11 +208,11 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                       type="tel"
                       placeholder="+91 94254 XXXXX"
                       className="input input-bordered w-full"
-                      value={data.username}
+                      value={data.phone}
                       onChange={(e) => {
                         setData({
                           ...data,
-                          username: e.target.value.toLowerCase(),
+                          phone: e.target.value.toLowerCase(),
                         });
                       }}
                     />

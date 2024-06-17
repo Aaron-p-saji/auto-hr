@@ -9,3 +9,11 @@
   font-weight: 900;
   font-style: normal;
 }
+
+@font-face {
+  font-family: ubermove-med;
+  src: url("https://cdn.jsdelivr.net/gh/Aaron-p-saji/fonts@main/ubermove/UberMove-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+}

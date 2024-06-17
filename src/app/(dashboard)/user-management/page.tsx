@@ -3,23 +3,20 @@ import React, { useEffect, useState } from "react";
 import Tables from "./_components/tables";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import axios from "axios";
+import { useAuthStore } from "@/providers/context";
+import { user } from "@/providers/typeProviders";
 
 type Props = {};
 
 const Page = (props: Props) => {
-  type user = {
-    id: number;
-    first_name: string;
-    email: string;
-    is_staff: true;
-  };
   const [userList, setUserList] = useState<user[]>([]);
   const [filteredUserList, setFilteredUserList] = useState<user[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [alert, setAlert] = useState<boolean>(false);
+  const [tableLoading, setTableLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // Filter user list based on search query
     const filtered = userList.filter(
       (user) =>
         user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -27,8 +24,32 @@ const Page = (props: Props) => {
     );
     setFilteredUserList(filtered);
   }, [searchQuery, userList]);
+
+  useEffect(() => {
+    const fetchUserList = async () => {
+      try {
+        setTableLoading(true);
+        const res = await axios.get("http://localhost:8000/api/user/", {
+          params: {
+            all: true,
+          },
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
+        });
+        if (res.status === 200) {
+          setUserList(res.data);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setTableLoading(false);
+      }
+    };
+    fetchUserList();
+  }, []);
   return (
-    <div className="flex flex-col w-full space-y-[5vh]">
+    <div className="flex flex-col mt-[10vh] ml-[10%] w-[80%] space-y-[5vh] ">
       {alert && (
         <div
           role="alert"
@@ -66,7 +87,7 @@ const Page = (props: Props) => {
           </button>
         </Link>
       </div>
-      <Tables userList={filteredUserList} />
+      <Tables userList={filteredUserList} isLoading={tableLoading} />
     </div>
   );
 };

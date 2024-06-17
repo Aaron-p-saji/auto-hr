@@ -3,20 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
-
-type User = {
-  id: string;
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
-  email: string;
-  level: string;
-  job_title: string;
-};
+import { certificate } from "../page";
 
 type Props = {
-  userList: Array<User>;
+  certiList: Array<certificate>;
   isLoading: Boolean;
+  onClick: any;
+  selectedId: certificate | null;
 };
 
 type DropdownMenuProps = {
@@ -119,7 +112,7 @@ const DropdownMenu = ({
     : null;
 };
 
-const Tables = ({ userList, isLoading }: Props) => {
+const Tables = ({ certiList, isLoading, onClick, selectedId }: Props) => {
   const [open, setOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -145,42 +138,48 @@ const Tables = ({ userList, isLoading }: Props) => {
           <thead>
             <tr>
               <th>Id</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Level</th>
-              <th>Job Title</th>
+              <th>File Name</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {userList.length > 0 ? (
-              userList.map((value, index) => (
-                <tr key={index} className="hover:bg-[#a0a0a098] transition-all">
+            {certiList.length > 0 ? (
+              certiList.map((value, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-[#a0a0a098] transition-all"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log(selectedId);
+                    console.log(value);
+                    if (selectedId !== null) {
+                      if (selectedId.id !== value.id) {
+                        onClick({
+                          id: value.id,
+                          filename: value.filename,
+                        });
+                      } else {
+                        onClick(null);
+                      }
+                    } else {
+                      onClick({
+                        id: value.id,
+                        filename: value.filename,
+                      });
+                    }
+                  }}
+                >
                   <td>{index + 1}</td>
                   <td>
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <div className="font-bold">
-                          {value.first_name} {value.middle_name}{" "}
-                          {value.last_name}
-                        </div>
-                      </div>
-                    </div>
+                    <span>{value.filename}</span>
                   </td>
-                  <td>
-                    <span className={`badge badge-ghost badge-sm`}>
-                      {value.email}
-                    </span>
-                  </td>
-                  <td>{value.level}</td>
-                  <td>{value.job_title}</td>
                   <th>
                     <button
                       ref={buttonRef}
                       className="btn btn-ghost btn-xs"
-                      onClick={() => handleOptionsClick(value.id)}
+                      onClick={() => {}}
                     >
-                      options
+                      Send
                     </button>
                   </th>
                 </tr>
@@ -190,15 +189,6 @@ const Tables = ({ userList, isLoading }: Props) => {
             )}
           </tbody>
         </table>
-      )}
-      {currentUserId && (
-        <DropdownMenu
-          open={open}
-          setOpen={setOpen}
-          buttonRef={buttonRef}
-          menuRef={menuRef}
-          userId={currentUserId}
-        />
       )}
     </div>
   );
