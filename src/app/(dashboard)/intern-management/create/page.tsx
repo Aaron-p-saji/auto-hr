@@ -4,37 +4,49 @@ import { Raleway } from "next/font/google";
 import axios from "axios";
 // import { useAuthStore } from "@/providers/context";
 import { useRouter } from "next/navigation";
-import { ServerCrashIcon, ServerOffIcon } from "lucide-react";
+import { ServerOffIcon } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import InstituteSearch from "./_component/search";
+import { AddressAutofill, SearchBox } from "@mapbox/search-js-react";
+import { CountrySearch } from "./_component/country_search";
 
 type Props = {};
 
 const raleway = Raleway({ weight: "900", subsets: ["latin"] });
 
 type RegisterFields = {
-  first_name: string;
-  last_name: string;
+  fullname: string;
+  dob: Date;
   email: string;
   phone: string;
   password: string;
-  send_email: boolean;
-  userType: string;
+  jobTitle: string;
+  street: string;
+  institution: string;
+  zip: string | null;
+  startDate: Date;
+  endDate: Date;
 };
+
 const CreateUser: React.FC<Props> = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAlert, setAlert] = useState(false);
   const router = useRouter();
   const [data, setData] = useState<RegisterFields>({
-    first_name: "",
-    last_name: "",
+    fullname: "",
+    dob: new Date(),
     email: "",
     phone: "",
     password: "",
-    send_email: true,
-    userType: "user",
+    jobTitle: "intern",
+    street: "",
+    institution: "",
+    zip: "",
+    startDate: new Date(),
+    endDate: new Date(),
   });
 
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const checkEmailExists = async (email: string) => {
@@ -62,54 +74,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
     }
   }, [data.email]);
 
-  //   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
-  //     e.preventDefault();
-  //     if (validatePassword(data.password)) {
-  //       setIsLoading(true);
-  //     //   const token = useAuthStore.getState().token;
-  //       try {
-  //         if (token) {
-  //           const res = await axios.post(
-  //             "http://localhost:8000/api/user/",
-  //             {
-  //               email: data.email,
-  //               first_name: data.first_name,
-  //               last_name: data.last_name,
-  //               username: data.username,
-  //               password: data.password,
-  //               is_superuser: data.userType === "admin" ? true : false,
-  //               is_staff: data.userType === "admin" ? true : false,
-  //               send_mail: data.send_email,
-  //             },
-  //             {
-  //               headers: {
-  //                 Authorization: `Bearer ${token}`,
-  //               },
-  //             }
-  //           );
-
-  //           if (res.status === 200) {
-  //             router.push("/user-management");
-  //           } else {
-  //             setAlert(true);
-  //             setTimeout(() => {
-  //               setAlert(false);
-  //             }, 1000);
-  //             router.push("/");
-  //           }
-  //         }
-  //       } catch (error) {
-  //         console.log(error);
-  //         setAlert(true);
-  //         setTimeout(() => {
-  //           setAlert(false);
-  //         }, 1000);
-  //         router.push("/");
-  //       } finally {
-  //         setIsLoading(false);
-  //       }
-  //     }
-  //   };
+  // Add the submitData function here if needed
 
   return (
     <div className="h-full mt-[10vh] text-black ml-[10%] w-[80%]">
@@ -125,31 +90,46 @@ const CreateUser: React.FC<Props> = (props: Props) => {
       )}
       <div className="flex flex-col space-y-[2vw]">
         <div>
-          <span className={`text-6xl ${raleway.className}`}>Create User</span>
+          <span className={`text-6xl ${raleway.className}`}>Create Intern</span>
         </div>
         <div className="w-full h-[70vh] overflow-y-scroll pr-10 scrollbar scrollbar-w-2 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2 scrollbar-transparent">
-          <form
-            className="space-y-[2vw]"
-            //   onSubmit={submitData} WIP
-          >
+          <form className="space-y-[2vw]">
             <div className="space-y-[2vw]">
-              <span className={`text-2xl`}>General Details</span>
-
               <div className="grid grid-cols-12 grid-rows-[auto] gap-2">
-                <div className="lg:col-span-4  col-span-12">
+                <div className="lg:col-span-4 col-span-12">
                   <label className="form-control w-full">
                     <div className="label">
-                      <span className="label-text">First Name</span>
+                      <span className="label-text">Employee ID</span>
                     </div>
                     <input
                       type="text"
-                      placeholder="Devin"
-                      className="input input-bordered w-full"
-                      value={data.first_name}
+                      placeholder=""
+                      className="input input-bordered w-full disabled:bg-black/10"
+                      disabled
+                      value={data.password} // WIP
                       onChange={(e) => {
                         setData({
                           ...data,
-                          first_name: e.target.value,
+                          password: e.target.value,
+                        });
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="lg:col-span-4 col-span-12">
+                  <label className="form-control w-full">
+                    <div className="label">
+                      <span className="label-text">Full Name</span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Devin Jacob Tharayan"
+                      className="input input-bordered w-full"
+                      value={data.fullname}
+                      onChange={(e) => {
+                        setData({
+                          ...data,
+                          fullname: e.target.value,
                         });
                       }}
                     />
@@ -160,70 +140,38 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                 <div className="lg:col-span-4 col-span-12">
                   <label className="form-control w-full">
                     <div className="label">
-                      <span className="label-text">Middle Name</span>
+                      <span className="label-text">Date of Birth</span>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Carlos"
-                      className="input input-bordered w-full"
-                      value={data.last_name}
+                    <DatePicker
+                      selected={data.dob}
                       onChange={(e) => {
-                        setData({
-                          ...data,
-                          last_name: e.target.value,
-                        });
+                        if (e) {
+                          setData({ ...data, dob: e });
+                        }
                       }}
+                      dateFormat="dd/MM/yyyy"
+                      className="input input-bordered w-full bg-transparent"
                     />
-                    <div className="label"></div>
                   </label>
                 </div>
 
                 <div className="lg:col-span-4 col-span-12">
-                  <label className="form-control w-full">
-                    <div className="label">
-                      <span className="label-text">Last Name</span>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="John"
-                      className="input input-bordered w-full"
-                      value={data.last_name}
-                      onChange={(e) => {
-                        setData({
-                          ...data,
-                          last_name: e.target.value,
-                        });
-                      }}
-                    />
-                    <div className="label"></div>
-                  </label>
-                </div>
-
-                <div className="lg:col-span-4 col-span-12">
-                  <label className="form-control w-full">
-                    <div className="label">
-                      <span className="label-text">phone number</span>
-                    </div>
-                    <input
-                      type="tel"
-                      placeholder="+91 94254 XXXXX"
-                      className="input input-bordered w-full"
-                      value={data.phone}
-                      onChange={(e) => {
-                        setData({
-                          ...data,
-                          phone: e.target.value.toLowerCase(),
-                        });
-                      }}
-                    />
-                    {usernameError && (
-                      <div className="label">
-                        <span className="label-text-alt text-red-500">
-                          {usernameError}
-                        </span>
-                      </div>
-                    )}
-                  </label>
+                  <div className="label">
+                    <span className="label-text">Job Title</span>
+                  </div>
+                  <select
+                    className="select select-bordered w-full"
+                    value={data.jobTitle}
+                    onChange={(e) => {
+                      setData({
+                        ...data,
+                        jobTitle: e.target.value,
+                      });
+                    }}
+                  >
+                    <option value="intern">Intern</option>
+                    <option value="trainee">Trainee</option>
+                  </select>
                 </div>
 
                 <div className="lg:col-span-4 col-span-12">
@@ -256,96 +204,111 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                 <div className="lg:col-span-4 col-span-12">
                   <label className="form-control w-full">
                     <div className="label">
-                      <span className="label-text">Employee ID</span>
+                      <span className="label-text">Phone Number</span>
                     </div>
                     <input
-                      type="text"
-                      placeholder=""
-                      className="input input-bordered w-full disabled:bg-black/10"
-                      disabled
-                      value={data.password} // WIP
+                      type="tel"
+                      placeholder="+91 94254 XXXXX"
+                      className="input input-bordered w-full"
+                      value={data.phone}
                       onChange={(e) => {
                         setData({
                           ...data,
-                          password: e.target.value,
+                          phone: e.target.value.toLowerCase(),
                         });
                       }}
                     />
-                    {passwordError && (
-                      <div className="label">
-                        <span className="label-text-alt text-red-500">
-                          {passwordError}
-                        </span>
-                      </div>
-                    )}
                   </label>
                 </div>
-              </div>
-            </div>
-            <div className="space-y-[2vw]">
-              <span className={`text-2xl`}>Employement Details</span>
 
-              <div className="grid grid-cols-12 grid-rows-[auto] gap-2">
-                <div className="lg:col-span-2 col-span-12">
+                <div className="lg:col-span-4 col-span-12">
                   <div className="label">
-                    <span className="label-text">Level</span>
+                    <span className="label-text">Institute</span>
                   </div>
-                  <select
-                    className="select select-bordered w-full"
-                    value={data.userType}
+                  <InstituteSearch />
+                </div>
+
+                <div className="lg:col-span-4 col-span-12">
+                  <div className="label">
+                    <span className="label-text">Country</span>
+                  </div>
+                  <CountrySearch />
+                </div>
+
+                <div className="lg:col-span-4 col-span-12">
+                  <div className="label">
+                    <span className="label-text">Street</span>
+                  </div>
+                  <SearchBox
+                    accessToken="pk.eyJ1IjoiYWFyb25wc2FqaSIsImEiOiJjbG1hZ3E1amsweTg5M25teHloYnB5bjZjIn0.PNCqXiN4opvMCXlsK41OMQ"
+                    value={data.street}
+                    options={{
+                      language: "en",
+                      country: "US",
+                    }}
                     onChange={(e) => {
                       setData({
                         ...data,
-                        userType: e.target.value,
+                        street: e,
                       });
                     }}
-                  >
-                    <option className="focus:h-10" value="on-site">
-                      Fresher
-                    </option>
-                    <option value="remote">Junior</option>
-                    <option value="hybrid">Senior</option>
-                  </select>
+                  />
                 </div>
-                <div className="lg:col-span-5 col-span-12">
+
+                <div className="lg:col-span-4 col-span-12">
                   <label className="form-control w-full">
                     <div className="label">
-                      <span className="label-text">Job Title</span>
+                      <span className="label-text">ZIP</span>
                     </div>
                     <input
                       type="text"
-                      placeholder="Web Developer"
+                      inputMode="numeric"
+                      placeholder="687541"
                       className="input input-bordered w-full"
-                      value={data.first_name}
+                      value={String(data.zip)}
                       onChange={(e) => {
                         setData({
                           ...data,
-                          first_name: e.target.value,
+                          zip: e.target.value,
                         });
                       }}
                     />
-                    <div className="label"></div>
                   </label>
                 </div>
 
-                <div className="lg:col-span-5 col-span-12">
+                <div className="lg:col-span-4 col-span-12">
                   <label className="form-control w-full">
                     <div className="label">
                       <span className="label-text">Start Date</span>
                     </div>
-                    <input
-                      type="date"
-                      className="input input-bordered w-full"
-                      value={data.last_name}
-                      placeholder="dd-mm-yyyy"
+                    <DatePicker
+                      selected={data.startDate}
                       onChange={(e) => {
-                        setData({
-                          ...data,
-                          last_name: e.target.value,
-                        });
+                        if (e) {
+                          setData({ ...data, startDate: e });
+                        }
                       }}
+                      dateFormat="dd/MM/yyyy"
+                      className="input input-bordered w-full bg-transparent"
                     />
-                    <div className="label"></div>
+                  </label>
+                </div>
+
+                <div className="lg:col-span-4 col-span-12">
+                  <label className="form-control w-full">
+                    <div className="label">
+                      <span className="label-text">End Date</span>
+                    </div>
+                    <DatePicker
+                      selected={data.endDate}
+                      onChange={(e) => {
+                        if (e) {
+                          setData({ ...data, endDate: e });
+                        }
+                      }}
+                      dateFormat="dd/MM/yyyy"
+                      className="input input-bordered w-full bg-transparent"
+                    />
                   </label>
                 </div>
               </div>

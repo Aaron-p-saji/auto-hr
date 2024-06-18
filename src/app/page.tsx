@@ -28,7 +28,7 @@ export default function Home() {
       setIsLoading(true);
       const res = await login(data.username, data.password);
       if (res) {
-        router.push("/user-management");
+        router.push("/intern-management");
       } else {
         setError("Invalid Credentials");
       }
@@ -39,9 +39,13 @@ export default function Home() {
     }
   };
   useEffect(() => {
-    if (useAuthStore.getState().token) {
-      router.replace("/user-management");
-    }
+    try {
+      setIsLoading(true);
+      if (useAuthStore.getState().token) {
+        router.replace("/intern-management");
+      }
+      setIsLoading(false);
+    } catch (error) {}
   }, [router]);
   return (
     <main className="flex min-h-screen w-screen flex-col justify-between">
@@ -67,6 +71,7 @@ export default function Home() {
                     autoComplete="username"
                     className="input input-bordered w-full"
                     {...register("username")}
+                    disabled={isLoading}
                   />
                   <div className="label">
                     {errors.username && (
@@ -88,6 +93,7 @@ export default function Home() {
                     placeholder="••••••••"
                     className="input input-bordered w-full"
                     {...register("password")}
+                    disabled={isLoading}
                   />
                 </label>
                 <div className="label">
@@ -99,7 +105,11 @@ export default function Home() {
                 </div>
               </div>
 
-              <button className="btn btn-neutral" type="submit">
+              <button
+                className="btn btn-neutral"
+                type="submit"
+                disabled={isLoading}
+              >
                 {isLoading && <span className="loading loading-spinner"></span>}
                 Login
               </button>
