@@ -3,13 +3,20 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { certificate } from "../page";
+
+type User = {
+  id: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  email: string;
+  level: string;
+  job_title: string;
+};
 
 type Props = {
-  certiList: Array<certificate>;
+  userList: Array<User>;
   isLoading: Boolean;
-  onClick: any;
-  selectedId: certificate | null;
 };
 
 type DropdownMenuProps = {
@@ -64,7 +71,7 @@ const DropdownMenu = ({
         >
           <div className="p-2">
             <Link
-              href={`/user-management/certificates/${userId}`}
+              href={`/intern-management/certificates/${userId}`}
               className="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               role="menuitem"
             >
@@ -112,7 +119,7 @@ const DropdownMenu = ({
     : null;
 };
 
-const Tables = ({ certiList, isLoading, onClick, selectedId }: Props) => {
+const Tables = ({ userList, isLoading }: Props) => {
   const [open, setOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -127,7 +134,7 @@ const Tables = ({ certiList, isLoading, onClick, selectedId }: Props) => {
     <div
       className={`overflow-x-auto ${
         isLoading ? "border-0" : "border-2"
-      } rounded-lg max-h-[60vh] select-none scrollbar scrollbar-w-2 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2 scrollbar-transparent`}
+      } rounded-lg max-h-[60vh] select-none scrollbar scrollbar-w-2 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2 `}
     >
       {isLoading ? (
         <>
@@ -138,48 +145,42 @@ const Tables = ({ certiList, isLoading, onClick, selectedId }: Props) => {
           <thead>
             <tr>
               <th>Id</th>
-              <th>File Name</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Level</th>
+              <th>Job Title</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {certiList.length > 0 ? (
-              certiList.map((value, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-[#a0a0a098] transition-all"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log(selectedId);
-                    console.log(value);
-                    if (selectedId !== null) {
-                      if (selectedId.id !== value.id) {
-                        onClick({
-                          id: value.id,
-                          filename: value.filename,
-                        });
-                      } else {
-                        onClick(null);
-                      }
-                    } else {
-                      onClick({
-                        id: value.id,
-                        filename: value.filename,
-                      });
-                    }
-                  }}
-                >
+            {userList.length > 0 ? (
+              userList.map((value, index) => (
+                <tr key={index} className="hover:bg-[#a0a0a098] transition-all">
                   <td>{index + 1}</td>
                   <td>
-                    <span>{value.filename}</span>
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="font-bold">
+                          {value.first_name} {value.middle_name}{" "}
+                          {value.last_name}
+                        </div>
+                      </div>
+                    </div>
                   </td>
+                  <td>
+                    <span className={`badge badge-ghost badge-sm`}>
+                      {value.email}
+                    </span>
+                  </td>
+                  <td>{value.level}</td>
+                  <td>{value.job_title}</td>
                   <th>
                     <button
                       ref={buttonRef}
                       className="btn btn-ghost btn-xs"
-                      onClick={() => {}}
+                      onClick={() => handleOptionsClick(value.id)}
                     >
-                      Send
+                      options
                     </button>
                   </th>
                 </tr>
@@ -189,6 +190,15 @@ const Tables = ({ certiList, isLoading, onClick, selectedId }: Props) => {
             )}
           </tbody>
         </table>
+      )}
+      {currentUserId && (
+        <DropdownMenu
+          open={open}
+          setOpen={setOpen}
+          buttonRef={buttonRef}
+          menuRef={menuRef}
+          userId={currentUserId}
+        />
       )}
     </div>
   );

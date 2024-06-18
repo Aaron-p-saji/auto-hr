@@ -20,7 +20,7 @@ const Sidebar = (props: Props) => {
   //   const { staff } = useUserStore();
   const pathname = usePathname();
   const navlinks = [
-    { name: "User Management", link: "/user-management", adminOnly: true },
+    { name: "Intern Management", link: "/intern-management", adminOnly: true },
     { name: "MailSuite", link: "/mail-suite", adminOnly: true },
   ];
   useEffect(() => {});

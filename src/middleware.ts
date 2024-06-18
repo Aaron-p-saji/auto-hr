@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   // Retrieve the token from cookies
   const token = request.cookies.get("accessToken")?.value;
 
-  const protectedPaths = ["/user-management", "/mail-suite", "/editor"];
+  const protectedPaths = ["/intern-management", "/mail-suite", "/editor"];
 
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)

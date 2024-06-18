@@ -79,8 +79,8 @@ function PDFGenerate() {
   const [headingUsed, setHeadingUsed] = useState(false);
   const [topTitle, setTopTitle] = useState("");
   const [userLoading, setUserLoading] = useState(false);
-  const [warning, setWarning] = useState(true);
   const [userList, setUserList] = useState<user[]>([]);
+  const [warning, setWarning] = useState(true);
   const [result, setResult] = useState(false);
   const [selectedUser, setSelectedUser] = useState<String>("");
 
@@ -120,7 +120,7 @@ function PDFGenerate() {
             setTimeout(() => {
               setResult(false);
             }, 1500);
-            router.push("/user-management");
+            router.push("/intern-management");
           }
         } catch (error) {
           console.error("Error:", error);

@@ -80,7 +80,7 @@ const Page = (props: Props) => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="input input-bordered !border-[#4e4e4e] border-2 w-[40%]"
         />
-        <Link href="user-management/create">
+        <Link href="intern-management/create">
           <button className="btn btn-info">
             <Plus />
             Create User
