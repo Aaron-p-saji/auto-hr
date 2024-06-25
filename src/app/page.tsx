@@ -3,6 +3,7 @@ import { login } from "@/functions/auth";
 import { useAuthStore } from "@/providers/context";
 import { LoginFields, loginSchema } from "@/providers/zodTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Metadata } from "next";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -48,7 +49,7 @@ export default function Home() {
     } catch (error) {}
   }, [router]);
   return (
-    <main className="flex min-h-screen w-screen flex-col justify-between">
+    <main className="flex h-screen w-screen flex-col justify-between">
       <div className="bg-white py-6 sm:py-8 lg:py-12">
         <div className="mx-auto max-w-screen-2xl px-4 md:px-8">
           <h2 className="mb-4 text-center text-2xl font-bold text-gray-800 md:mb-8 lg:text-3xl">

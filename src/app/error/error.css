@@ -1,0 +1,334 @@
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.panWrapper {
+  width: 200px;
+  height: fit-content;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.pan {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  height: fit-content;
+  animation: cooking 1.7s infinite;
+}
+@keyframes cooking {
+  0% {
+    transform: rotate(0deg);
+    transform-origin: top right;
+  }
+  10% {
+    transform: rotate(-4deg);
+    transform-origin: top right;
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.food {
+  position: absolute;
+  width: 40%;
+  height: 6px;
+  background: linear-gradient(to bottom, rgb(82, 33, 33), rgb(200, 106, 106));
+  left: 10px;
+  border-radius: 50%;
+  animation: flip 1.7s infinite;
+  z-index: 2;
+}
+@keyframes flip {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-100px) rotate(180deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg);
+  }
+}
+.panBase {
+  z-index: 3;
+  width: 50%;
+  height: 22px;
+  border-bottom-left-radius: 40px;
+  border-bottom-right-radius: 40px;
+  background: linear-gradient(to top, rgb(3, 156, 156), rgb(10, 191, 191));
+}
+.panHandle {
+  width: 40%;
+  background: linear-gradient(to bottom, rgb(18, 18, 18), rgb(74, 74, 74));
+  height: 10px;
+  border-radius: 10px;
+}
+.panShadow {
+  width: 70px;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.21);
+  margin-left: 15px;
+  border-radius: 10px;
+  animation: shadow 1.7s infinite;
+  filter: blur(5px);
+}
+@keyframes shadow {
+  0% {
+    transform: scaleX(0.7);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0.7);
+  }
+}
+.Btn {
+  width: 180px;
+  height: 45px;
+  border-radius: 40px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: white;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+  background: linear-gradient(to right, #44ea76, #39fad7);
+  transition-duration: 0.3s;
+  letter-spacing: 1.4px;
+}
+
+.svgIcon path {
+  fill: white;
+}
+
+.Btn:hover {
+  transform: scale(0.95);
+  transition-duration: 0.3s;
+}
+
+.Btn::before {
+  content: "";
+  position: absolute;
+  width: 80%;
+  height: 30%;
+  background: linear-gradient(to right, #44ea76, #39fad7);
+  filter: blur(10px);
+  bottom: -3px;
+  z-index: -1;
+  transition-duration: 0.3s;
+}
+
+.Btn:hover::before {
+  bottom: -1px;
+  filter: blur(5px);
+  transition-duration: 0.3s;
+}
+
+.button-container {
+  --background: #fefbff;
+  --inner-shadow: #9faef9;
+  --inner-outline: #34217d;
+  --inner-outline-bottom: #fafcfe;
+  --inner-outline-middle: #8880d5;
+  --inner-outline-outer-top: #fefcff;
+  --inner-outline-outer-bottom-1: #29107b;
+  --line-1: #8676c9;
+  --line-2: #5c69ca;
+  position: relative;
+  background: var(--background);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 17px;
+  padding: 0.7em 1.8em;
+  border-radius: 5px;
+  box-shadow: inset 0px 1px 8px 1px var(--inner-shadow),
+    0px 2px 0px 0px var(--inner-outline-bottom),
+    0px -2px 0px 0px var(--inner-outline),
+    -2px -2px 0px 0px var(--inner-outline),
+    2px -2px 0px 0px var(--inner-outline),
+    0px 0px 0px 6px var(--inner-outline-middle),
+    0px -2px 0px 7px var(--inner-outline-outer-top),
+    0px 4px 0px 7px var(--inner-outline-outer-bottom-1);
+}
+
+.button-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.button-line-1 {
+  height: 0.2em;
+  width: 4em;
+  border-radius: 10em;
+  display: inline-block;
+  background: var(--line-1);
+}
+
+.button-line-2 {
+  height: 0.2em;
+  width: 3em;
+  border-radius: 10em;
+  display: inline-block;
+  background: var(--line-2);
+}
+
+.text {
+  font-weight: bold;
+  color: black;
+  border-radius: 2rem;
+  cursor: pointer;
+  width: 95.02px;
+  height: 42.66px;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text .span-mother {
+  display: flex;
+  overflow: hidden;
+}
+
+.text:hover .span-mother {
+  position: absolute;
+}
+
+.text:hover .span-mother span {
+  transform: translateY(1.2em);
+}
+
+.text .span-mother span:nth-child(1) {
+  transition: 0.2s;
+}
+
+.text .span-mother span:nth-child(2) {
+  transition: 0.3s;
+}
+
+.text .span-mother span:nth-child(3) {
+  transition: 0.4s;
+}
+
+.text .span-mother span:nth-child(4) {
+  transition: 0.5s;
+}
+
+.text .span-mother span:nth-child(5) {
+  transition: 0.6s;
+}
+
+.text .span-mother span:nth-child(6) {
+  transition: 0.7s;
+}
+
+.text .span-mother2 {
+  display: flex;
+  position: absolute;
+  overflow: hidden;
+}
+
+.text .span-mother2 span {
+  transform: translateY(-1.2em);
+}
+
+.text:hover .span-mother2 span {
+  transform: translateY(0);
+}
+
+.text .span-mother2 span {
+  transition: 0.2s;
+}
+
+.text .span-mother2 span:nth-child(2) {
+  transition: 0.3s;
+}
+
+.text .span-mother2 span:nth-child(3) {
+  transition: 0.4s;
+}
+
+.text .span-mother2 span:nth-child(4) {
+  transition: 0.5s;
+}
+
+.text .span-mother2 span:nth-child(5) {
+  transition: 0.6s;
+}
+
+.text .span-mother2 span:nth-child(6) {
+  transition: 0.7s;
+}
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  animation: spinner-y0fdc1 2s infinite ease;
+  transform-style: preserve-3d;
+}
+
+.spinner > div {
+  background-color: rgba(0, 77, 255, 0.3);
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  border: 2px solid #0800ff;
+}
+
+.spinner div:nth-of-type(1) {
+  transform: translateZ(-22px) rotateY(180deg);
+}
+
+.spinner div:nth-of-type(2) {
+  transform: rotateY(-270deg) translateX(50%);
+  transform-origin: top right;
+}
+
+.spinner div:nth-of-type(3) {
+  transform: rotateY(270deg) translateX(-50%);
+  transform-origin: center left;
+}
+
+.spinner div:nth-of-type(4) {
+  transform: rotateX(90deg) translateY(-50%);
+  transform-origin: top center;
+}
+
+.spinner div:nth-of-type(5) {
+  transform: rotateX(-90deg) translateY(50%);
+  transform-origin: bottom center;
+}
+
+.spinner div:nth-of-type(6) {
+  transform: translateZ(22px);
+}
+
+@keyframes spinner-y0fdc1 {
+  0% {
+    transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
+  }
+
+  50% {
+    transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
+  }
+
+  100% {
+    transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
+  }
+}

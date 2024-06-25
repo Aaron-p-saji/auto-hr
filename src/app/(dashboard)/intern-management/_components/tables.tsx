@@ -1,11 +1,12 @@
 "use client";
+import { RegisterFields, UserFields } from "@/providers/zodTypes";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 type User = {
-  id: string;
+  intern_code: string;
   first_name: string;
   middle_name?: string;
   last_name: string;
@@ -15,7 +16,7 @@ type User = {
 };
 
 type Props = {
-  userList: Array<User>;
+  userList: Array<UserFields>;
   isLoading: Boolean;
 };
 
@@ -147,7 +148,6 @@ const Tables = ({ userList, isLoading }: Props) => {
               <th>Id</th>
               <th>Name</th>
               <th>Email</th>
-              <th>Level</th>
               <th>Job Title</th>
               <th></th>
             </tr>
@@ -160,10 +160,7 @@ const Tables = ({ userList, isLoading }: Props) => {
                   <td>
                     <div className="flex items-center gap-3">
                       <div>
-                        <div className="font-bold">
-                          {value.first_name} {value.middle_name}{" "}
-                          {value.last_name}
-                        </div>
+                        <div className="font-bold">{value.full_name}</div>
                       </div>
                     </div>
                   </td>
@@ -172,16 +169,15 @@ const Tables = ({ userList, isLoading }: Props) => {
                       {value.email}
                     </span>
                   </td>
-                  <td>{value.level}</td>
                   <td>{value.job_title}</td>
                   <th>
-                    <button
-                      ref={buttonRef}
-                      className="btn btn-ghost btn-xs"
-                      onClick={() => handleOptionsClick(value.id)}
+                    <Link
+                      href={`/intern-management/intern/${value.intern_code}`}
                     >
-                      options
-                    </button>
+                      <button ref={buttonRef} className="btn btn-ghost btn-xs">
+                        view
+                      </button>
+                    </Link>
                   </th>
                 </tr>
               ))

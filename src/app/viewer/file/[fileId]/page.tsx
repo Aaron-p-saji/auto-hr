@@ -17,6 +17,8 @@ const Page = (params: { params: { fileId: string } }) => {
   const [cache, setCached] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  const [shareClick, setShare] = useState<boolean>(false);
+
   useEffect(() => {
     const fetchThumbnail = async () => {
       try {
@@ -55,7 +57,7 @@ const Page = (params: { params: { fileId: string } }) => {
     fetchThumbnail();
   }, [params.params.fileId]); // Dependency array ensures useEffect runs on fileId change
 
-  const shareUrl = `http://localhost:3000/viewer/file/${params.params.fileId}`;
+  const shareUrl = `http://localhost:3000/viewer/file/${params.params.fileId}.pdf`;
 
   return file !== "" ? (
     <div className="flex w-full h-[100vh] relative">
@@ -78,46 +80,63 @@ const Page = (params: { params: { fileId: string } }) => {
         </a>
       </button>
       <button
-        className="group absolute w-fit h-fit bg-white bottom-32 right-20 p-4 rounded-full hover:bg-gray-300 hover:scale-110 transition-all "
+        className="group absolute w-fit h-fit bg-white bottom-14 right-40 p-4 rounded-full hover:bg-gray-300 hover:scale-110 transition-all "
         aria-label="Share"
+        onClick={() => {
+          setShare(true);
+        }}
       >
         <span className="invisible group-hover:visible opacity-0 group-hover:opacity-100 absolute -top-14 bg-black/75 -right-3 text-white px-10 py-2 text-nowrap rounded-lg">
           Share PDF
         </span>
-        <a href={file} download>
+        <span>
           <Share2Icon className="hover:text-black" />
-        </a>
+        </span>
       </button>
-      <div className="absolute w-full h-full bg-black/50 flex items-center justify-center">
-        <div className="flex flex-col bg-[#212121] w-[25%] h-[40%] rounded-xl p-4 space-y-2">
+      <div
+        className={`absolute w-full h-full bg-black/50  items-center justify-center ${
+          shareClick ? "flex" : "hidden"
+        }`}
+      >
+        <div className="flex flex-col bg-[#212121] w-[25%] h-[30%] rounded-xl p-4 space-y-2">
           <div className="flex justify-between text-white text-lg items-center">
             <span>Share</span>
-            <div className="p-2 hover:text-[#a4a4a4] rounded-full transition">
+            <div
+              className="p-2 hover:text-[#a4a4a4] rounded-full transition"
+              onClick={(e) => {
+                setShare(false);
+              }}
+            >
               <X />
             </div>
           </div>
-          <div className="flex space-x-2">
-            <FacebookShareButton url={shareUrl} lang="english">
-              <FacebookIcon className="rounded-full" />
-            </FacebookShareButton>
-            <WhatsappShareButton
-              url={shareUrl}
-              lang="english"
-              title="Checkout my Certificate"
-            >
-              <WhatsappIcon className="rounded-full" />
-            </WhatsappShareButton>
-          </div>
-          <div className="w-full border-2 p-2 border-white/20 rounded-xl flex h-fit space-x-7 items-center bg-black">
-            <span className="text-white text-sm text-ellipsis whitespace-nowrap overflow-hidden w-[85%] select-none">
-              {shareUrl}
-            </span>
-            <button
-              type="button"
-              className="p-2 px-4 text-black bg-[#3ea6ff] hover:bg-[#3ea6ff]/70 transition-all flex items-center rounded-full"
-            >
-              Copy
-            </button>
+          <div className="flex flex-col space-y-10 py-5">
+            <div className="flex space-x-2">
+              <FacebookShareButton url={shareUrl} lang="english">
+                <FacebookIcon className="rounded-full" />
+              </FacebookShareButton>
+              <WhatsappShareButton
+                url={shareUrl}
+                lang="english"
+                title="Checkout my Certificate"
+              >
+                <WhatsappIcon className="rounded-full" />
+              </WhatsappShareButton>
+            </div>
+            <div className="w-full border-2 p-2 border-white/20 rounded-xl flex h-fit space-x-7 items-center bg-black">
+              <span className="text-white text-sm text-ellipsis whitespace-nowrap overflow-hidden w-[85%] select-none">
+                {shareUrl}
+              </span>
+              <button
+                type="button"
+                className="p-2 px-4 text-black bg-[#3ea6ff] hover:bg-[#3ea6ff]/70 transition-all flex items-center rounded-full"
+                onClick={() => {
+                  navigator.clipboard.writeText(shareUrl);
+                }}
+              >
+                Copy
+              </button>
+            </div>
           </div>
         </div>
       </div>

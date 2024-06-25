@@ -25,7 +25,7 @@ const Sidebar = (props: Props) => {
   ];
   useEffect(() => {});
   return (
-    <div className="flex h-screen flex-col justify-between border-e bg-white w-[8vw] lg:w-[25vw] lg:max-w-[300px] transition-all ease-linear">
+    <div className="flex h-screen flex-col justify-between border-e bg-white w-[8vw] min-w-[70px] lg:w-[25vw] lg:max-w-[300px] transition-all ease-linear">
       <div className="px-[1vw] py-[3vh]">
         <Link href="/" className="cursor-pointer">
           <span

@@ -5,15 +5,10 @@ import "./cer.css";
 import axios from "axios";
 import { useAuthStore } from "@/providers/context";
 import Image from "next/image";
-import { user } from "@/providers/typeProviders";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-export type certificate = {
-  id: string;
-  filename: string;
-};
+import { UserFields, certificate } from "@/providers/zodTypes";
 
 const Page = (params: { params: { userId: string } }) => {
   const [selectedId, setSelectedId] = useState<certificate | null>(null);
@@ -24,7 +19,7 @@ const Page = (params: { params: { userId: string } }) => {
   const [progress, setProgress] = useState(0);
   const [thumbanil, setThumbnail] = useState("");
   const [cache, setCached] = useState<boolean>(false);
-  const [fetchedUser, setFetchedUser] = useState<user | null>(null);
+  const [fetchedUser, setFetchedUser] = useState<UserFields | null>(null);
   const [toast, setToast] = useState(0);
   const [message, setMessage] = useState("");
   const [isLoading, setLoading] = useState(false);
@@ -125,7 +120,7 @@ const Page = (params: { params: { userId: string } }) => {
         setThumbnail("");
         setCached(false);
         const response = await axios.get(
-          `http://localhost:8000/api/pdfs/thumbnail/${params.params.userId}/${selectedId?.filename}/`,
+          `http://localhost:8000/api/pdfs/thumbnail/${selectedId?.filename}/`,
           {
             headers: {
               Authorization: `Bearer ${useAuthStore.getState().token}`,
@@ -261,7 +256,7 @@ const Page = (params: { params: { userId: string } }) => {
                   <span>File Owner</span>
                   <span className="font-ubermove_regular text-gray-500">
                     {fetchedUser !== null
-                      ? `${fetchedUser?.first_name} ${fetchedUser?.middle_name} ${fetchedUser?.last_name}`
+                      ? `${fetchedUser?.full_name}`
                       : "undefined"}
                   </span>
                 </div>

@@ -15,7 +15,7 @@ const config: Config = {
       },
       fontFamily: {
         uber_move: ["ubermove", "sans-serif"],
-        ubermove_regular: ["ubermove-med", "sans-serif"],
+        poppins: ["Poppins", "sans-serif"],
       },
       scale: {
         "60": "0.60",
