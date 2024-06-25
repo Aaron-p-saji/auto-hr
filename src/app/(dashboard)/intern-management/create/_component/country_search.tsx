@@ -4,10 +4,15 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./search.module.css";
 import { useDebounce } from "./debounce";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "@/providers/zodTypes";
 
-type Props = {};
+type Props = {
+  searche: string;
+};
 
-export type Institute = {
+export type Country = {
   name: string;
 };
 
@@ -16,30 +21,16 @@ const CountrySearch = (props: Props) => {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const debouncedInput = useDebounce(search);
-  const [searchResults, setSearchResults] = useState<Institute[]>([]);
-  const [institution, setInstitution] = useState<Institute | null>(null);
+  const [searchResults, setSearchResults] = useState<Country[]>([]);
+  const [institution, setInstitution] = useState<Country | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const handleClose = () => {
-    setSearch("");
-    setSearchResults([]);
-  };
-
-  useEffect(() => {
-    const queryEmail = searchParams.get("email");
-    if (queryEmail) {
-      setSearch(queryEmail);
-      const currentPath = window.location.pathname;
-      router.replace(currentPath);
-    }
-  }, [searchParams, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setInstitution(null); // Clear the institution when typing a new search
   };
 
-  const transformInstituteData = (data: any): Institute => {
+  const transformInstituteData = (data: any): Country => {
     return {
       name: data.name.common,
     };
@@ -51,7 +42,7 @@ const CountrySearch = (props: Props) => {
       try {
         if (search !== "") {
           const response = await axios.get(
-            `https://restcountries.com/v3.1/name/${search}`
+            `https://restcountries.com/v3.1/name/${props.searche}`
           );
           const transformedData = response.data.map(transformInstituteData);
           setSearchResults(transformedData);
@@ -73,7 +64,7 @@ const CountrySearch = (props: Props) => {
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
 
-  const handleInstitute = (institute: Institute) => {
+  const handleInstitute = (institute: Country) => {
     setInstitution(institute);
     setSearch("");
     setSearchResults([]);
@@ -89,7 +80,6 @@ const CountrySearch = (props: Props) => {
             placeholder="Search ..."
             autoComplete="off"
             value={search || institution?.name || ""}
-            onChange={handleChange}
           />
         </label>
 

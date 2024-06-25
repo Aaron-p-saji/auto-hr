@@ -4,8 +4,13 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./search.module.css";
 import { useDebounce } from "./debounce";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "@/providers/zodTypes";
 
-type Props = {};
+type Props = {
+  onSubmit: (institute: string) => void;
+};
 
 export type Institute = {
   web_page: Array<string>;
@@ -56,6 +61,12 @@ const InstituteSearch = (props: Props) => {
     };
   };
 
+  const {
+    register,
+    handleSubmit,
+    formState: error,
+  } = useForm({ resolver: zodResolver(registerSchema) });
+
   useEffect(() => {
     const handleSearch = async () => {
       setIsLoading(true);
@@ -86,6 +97,9 @@ const InstituteSearch = (props: Props) => {
 
   const handleInstitute = (institute: Institute) => {
     setInstitution(institute);
+    props.onSubmit(
+      `${institute.name},${institute.state_province},${institute.country},${institute.alpha_to_code}`
+    );
     setSearch("");
     setSearchResults([]);
   };
@@ -100,7 +114,7 @@ const InstituteSearch = (props: Props) => {
             placeholder="Search ..."
             autoComplete="off"
             value={search || institution?.name || ""}
-            onChange={handleChange}
+            {...register("institute")}
           />
         </label>
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "react-quill/dist/quill.snow.css";
 import "./_components/page.css";
 import ReactQuill from "react-quill";
@@ -11,9 +11,13 @@ import { Open_Sans, Roboto_Serif } from "next/font/google";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Rnd } from "react-rnd";
-import { user } from "@/providers/typeProviders";
 import { useAuthStore } from "@/providers/context";
 import axios from "axios";
+import { UserFields } from "@/providers/zodTypes";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
+import { X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const opensans = Open_Sans({ subsets: ["latin"] });
 const roboto = Roboto_Serif({ subsets: ["latin"] });
@@ -44,61 +48,51 @@ const Page = () => {
     `<p>Dear {{intern}},</p><p><br></p><p class="ql-align-justify">We are pleased to offer you the position of Software Developer Trainee at Bi. Enterprises. We were impressed by your qualifications and enthusiasm for software development, and we are confident that you will make valuable contributions to our team.</p><p class="ql-align-justify"><br></p><p class="ql-align-justify">This internship is scheduled to begin on {{startDate}}, with the possibility of extension based on performance and mutual agreement. Your working hours will be 8 Hrs. per day, with a schedule to be determined in consultation with your supervisor.</p><p class="ql-align-justify"><br></p><p class="ql-align-justify">During your internship, you will have the opportunity to:</p><ul><li class="ql-align-justify">Gain hands-on experience in various aspects of software development, including coding, testing, and debugging.</li><li class="ql-align-justify">Participate in team meetings, code reviews, and other collaborative activities to enhance your skills.</li><li class="ql-align-justify">Receive feedback and mentorship to support your professional growth and development as a software developer.</li></ul><p class="ql-align-justify">We are excited to welcome you to the Bi. Enterprises team and look forward to working together.</p>`
   );
   const [contDesc, setContDesc] = useState<string>(desc);
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(
-    new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
-  );
 
   const [isClicked, setIsClicked] = useState(false);
   const [resizeEnabled, setResizeEnabled] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
-  const [userList, setUserList] = useState<user[]>([]);
-  const [selectedUser, setSelectedUser] = useState<user | null>(null);
+  const [userList, setUserList] = useState<UserFields[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserFields | null>(null);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [loader, setLoader] = useState(false);
+  const [warning, setWarning] = useState(true);
+  const [result, setResult] = useState(false);
+
+  const router = useRouter();
 
   const handleChange = (content: string) => {
-    let updatedContent = content.replace(
-      /{{startDate}}/g,
-      `${startDate.getDate()}/${
-        startDate.getMonth() + 1
-      }/${startDate.getFullYear()}`
-    );
-    updatedContent = updatedContent.replace(
-      /{{endDate}}/g,
-      `${endDate.getDate()}/${endDate.getMonth() + 1}/${endDate.getFullYear()}`
-    );
+    if (selectedUser?.start_date) {
+      const start_Date = new Date(selectedUser.start_date);
+      setStartDate(start_Date);
+      let updatedContent = content.replace(
+        /{{startDate}}/g,
+        `${start_Date.getDate()}/${
+          start_Date.getMonth() + 1
+        }/${start_Date.getFullYear()}`
+      );
 
-    updatedContent = updatedContent.replace(
-      /{{intern}}/g,
-      `${selectedUser?.first_name} ${selectedUser?.middle_name} ${selectedUser?.last_name}`
-    );
-    setDesc(content);
-    setContDesc(updatedContent);
-  };
-
-  const handleEndDateChange = (date: Date | null) => {
-    if (date) {
-      const minimumEndDate = new Date(startDate);
-      minimumEndDate.setDate(minimumEndDate.getDate() + 7);
-
-      const timeDifference = Math.abs(date.getTime() - startDate.getTime());
-      const differenceInDays = Math.ceil(timeDifference / (1000 * 3600 * 24));
-
-      if (date < minimumEndDate || differenceInDays < 7) {
-        setEndDate(minimumEndDate);
-      } else {
-        setEndDate(date);
+      // Assuming you also want to replace {{endDate}} similarly
+      if (selectedUser?.endDate) {
+        const endDate = new Date(selectedUser.endDate);
+        updatedContent = updatedContent.replace(
+          /{{endDate}}/g,
+          `${endDate.getDate()}/${
+            endDate.getMonth() + 1
+          }/${endDate.getFullYear()}`
+        );
       }
-    } else {
-      setEndDate(new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000));
+
+      if (selectedUser.full_name) {
+        updatedContent = updatedContent.replace(
+          /{{intern}}/g,
+          `${selectedUser?.full_name}`
+        );
+      }
+      setDesc(content);
+      setContDesc(updatedContent);
     }
   };
-
-  useEffect(() => {
-    const updatedEndDate = new Date(
-      startDate.getTime() + 7 * 24 * 60 * 60 * 1000
-    );
-    setEndDate(updatedEndDate);
-  }, [startDate]);
 
   const handleDoubleClick = () => {
     setResizeEnabled(!resizeEnabled);
@@ -108,7 +102,7 @@ const Page = () => {
     const fetchUser = async () => {
       try {
         setUserLoading(true);
-        const res = await axios.get("http://localhost:8000/api/user/", {
+        const res = await axios.get("http://localhost:8000/api/intern/", {
           params: {
             all: true,
           },
@@ -134,24 +128,131 @@ const Page = () => {
     setSelectedUser(userList[0]);
   }, [useAuthStore.getState().token]);
 
+  const handleSend = async () => {
+    const certificate = document.querySelector(".certificate");
+    if (certificate instanceof HTMLElement) {
+      setLoader(true);
+      html2canvas(certificate, { scale: 3 }).then(async (canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const doc = new jsPDF({
+          unit: "px",
+          format: [580, 821], // Adjusted to match the size of your certificate
+          compress: false,
+        });
+        doc.addImage(imgData, "PNG", 0, 0, 580, 821, "", "NONE");
+        const pdfOutput = doc.output("blob");
+
+        const formData = new FormData();
+        formData.append("file", pdfOutput, "certificate.pdf");
+        formData.append("user_id", String(selectedUser?.intern_code));
+
+        try {
+          if (selectedUser !== null) {
+            const res = await axios.post(
+              "http://localhost:8000/api/upload/",
+              formData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              }
+            );
+            console.log("Success:", res.data);
+            setResult(true);
+            setTimeout(() => {
+              setResult(false);
+            }, 1500);
+            router.push("/intern-management");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          console.log(selectedUser);
+        }
+        setLoader(false);
+      });
+    }
+  };
+
   useEffect(() => {
     if (selectedUser) {
       handleChange(desc);
     }
-  }, [selectedUser, desc, startDate, endDate, contDesc]);
+  }, [selectedUser, desc, contDesc]);
 
   useEffect(() => {
     handleChange(desc);
   }, []);
 
+  const areaRef = useRef<HTMLDivElement>(null);
+  const [cursorStyle, setCursorStyle] = useState("default");
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Control") {
+        setCursorStyle("move");
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "Control") {
+        setCursorStyle("default");
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
+
   return (
     <div className="h-full w-full">
-      <div className="w-full h-full grid grid-rows-[auto] grid-cols-8 bg-stone-400 pattern">
+      <div className="w-full h-full grid grid-rows-[auto] grid-cols-8 bg-stone-400 pattern ">
         <div className="col-span-1 bg-gray-100 flex flex-col items-center pt-5">
           <span className="text-black font-bold text-xl">Templates</span>
           <div className="h-[80%] overflow-y-auto"></div>
         </div>
-        <div className="col-span-5 w-full h-full">
+        <div
+          ref={areaRef}
+          className={`col-span-5 w-full h-full cursor-${cursorStyle}`}
+        >
+          <div
+            role="alert"
+            className={`alert justify-between absolute ${
+              result ? "alert-success" : "alert-error"
+            } w-[50%] ${
+              result ? "text_animate flex" : "text_animate_end hidden"
+            }`}
+          >
+            <div className="flex space-x-3">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <span>
+                {result ? "Successfully Created" : "PDF Generation Failed"}
+              </span>
+            </div>
+            <X
+              size={18}
+              className="border-2 border-black rounded-full cursor-pointer"
+              onClick={() => {
+                setWarning(false);
+              }}
+            />
+          </div>
           <TransformWrapper
             centerOnInit={true}
             centerZoomedOut={true}
@@ -165,7 +266,7 @@ const Page = () => {
               wrapperClass="!w-full !h-full"
               contentClass="!item-center flex-col !justify-center"
             >
-              <div className="w-[580px] h-[821px] text-white flex relative flex-col justify-center items-center">
+              <div className="w-[580px] h-[821px] text-white flex relative flex-col justify-center items-center certificate">
                 <div className="w-full h-full absolute -z-[1]">
                   <Image
                     src={offerletter}
@@ -219,111 +320,99 @@ const Page = () => {
             </TransformComponent>
           </TransformWrapper>
         </div>
-        <div className="col-span-2 bg-gray-100 flex flex-col items-center pt-5 space-y-4 @apply scrollbar scrollbar-w-1 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2; overflow-y-auto">
-          <span className="text-black font-bold text-xl">Data</span>
-          <div className={`p-4 !text-black space-y-14`}>
-            <ReactQuill
-              theme="snow"
-              value={desc}
-              onChange={handleChange}
-              modules={modules}
-              formats={formats}
-              placeholder="Type Here"
-              className={`h-[45%] ${roboto.className}`}
-            />
-            <div className="flex flex-col">
-              <div className="flex space-x-4">
+        <div className="col-span-2 bg-gray-100 flex flex-col items-center pt-5 space-y-4 ">
+          <div className="flex flex-col items-center scrollbar scrollbar-w-1 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2 overflow-y-auto">
+            <span className="text-black font-bold text-xl">Data</span>
+            <div className={`p-4 !text-black space-y-14`}>
+              <ReactQuill
+                theme="snow"
+                value={desc}
+                onChange={handleChange}
+                modules={modules}
+                formats={formats}
+                placeholder="Type Here"
+                className={`h-[35%] ${roboto.className}`}
+              />
+              <div className="flex flex-col">
                 <label className="form-control w-full">
-                  <div className="label">
-                    <span className="label-text">Start Date</span>
-                  </div>
-                  <DatePicker
-                    selected={startDate}
-                    onChange={(date: Date | null) =>
-                      setStartDate(date ?? new Date())
-                    }
-                    dateFormat="dd/MM/yyyy"
-                    className="input input-bordered w-full bg-transparent"
-                  />
-                </label>
-                <label className="form-control w-full">
-                  <div className="label">
-                    <span className="label-text">End Date</span>
-                  </div>
-                  <DatePicker
-                    selected={endDate}
-                    onChange={handleEndDateChange}
-                    minDate={
-                      new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
-                    }
-                    dateFormat="dd/MM/yyyy"
-                    className="input input-bordered w-full bg-transparent"
-                  />
+                  {userLoading ? (
+                    <>
+                      <div className="flex flex-col items-center mt-5">
+                        <div className="newtons-cradle">
+                          <div className="newtons-cradle__dot"></div>
+                          <div className="newtons-cradle__dot"></div>
+                          <div className="newtons-cradle__dot"></div>
+                          <div className="newtons-cradle__dot"></div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="label">
+                        <span className="label-text">Select Intern</span>
+                      </div>
+                      <select
+                        className="select select-bordered bg-transparent"
+                        onChange={(e) => {
+                          const selectedIntern = userList.find(
+                            (val) => val.intern_code === e.target.value
+                          );
+                          setSelectedUser(selectedIntern || null);
+                        }}
+                      >
+                        <option disabled selected>
+                          Select an option
+                        </option>
+                        {userList.map((intern, index) => (
+                          <option
+                            key={index}
+                            value={intern.intern_code}
+                            className="overflow-hidden text-ellipsis w-full"
+                          >
+                            {index + 1} • {intern.full_name} • {intern.email}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
                 </label>
               </div>
-              <label className="form-control w-full">
-                {userLoading ? (
-                  <>
-                    <div className="flex flex-col items-center mt-5">
-                      <div className="newtons-cradle">
-                        <div className="newtons-cradle__dot"></div>
-                        <div className="newtons-cradle__dot"></div>
-                        <div className="newtons-cradle__dot"></div>
-                        <div className="newtons-cradle__dot"></div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="label">
-                      <span className="label-text">Select Intern</span>
-                    </div>
-                    <select
-                      className="select select-bordered bg-transparent"
-                      onChange={(e) => {
-                        const selectedIntern = userList.find(
-                          (val) => val.id === e.target.value
-                        );
-                        setSelectedUser(selectedIntern || null);
-                      }}
-                    >
-                      <option disabled selected>
-                        Select an option
-                      </option>
-                      {userList.map((intern, index) => (
-                        <option
-                          key={index}
-                          value={intern.id}
-                          className="overflow-hidden text-ellipsis w-full"
-                        >
-                          {index + 1} • {intern.first_name} • {intern.email}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                )}
-              </label>
-            </div>
-            <div className={`w-fit p-2 items-center flex flex-col space-y-4`}>
-              <span className="text-black font-bold text-xl">Formattings</span>
-              <div className="flex flex-col text-black text-sm items-center">
-                <div>
-                  <span className="text-red-500">{"{{startDate}}"} - </span>
-                  <span className="text-blue-600">
-                    Replace with the selected start date in the document
-                  </span>
+              <div className={`w-fit p-2 items-center flex flex-col space-y-4`}>
+                <span className="text-black font-bold text-xl">
+                  Formattings
+                </span>
+                <div className="flex flex-col text-black text-sm items-center">
+                  <div>
+                    <span className="text-red-500">{"{{startDate}}"} - </span>
+                    <span className="text-blue-600">
+                      Replace with the selected start date in the document
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-red-500">{"{{endDate}}"} - </span>
+                    <span className="text-blue-600">
+                      Replace with the selected end date in the document
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-red-500">{"{{intern}}"} - </span>
+                    <span className="text-blue-600">
+                      Replace with the selected intern in the document
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-red-500">{"{{endDate}}"} - </span>
-                  <span className="text-blue-600">
-                    Replace with the selected end date in the document
-                  </span>
-                </div>
-                <div>
-                  <span className="text-red-500">{"{{intern}}"} - </span>
-                  <span className="text-blue-600">
-                    Replace with the selected intern in the document
-                  </span>
+              </div>
+              <div className="w-full h-fit flex">
+                <div
+                  className={`btn btn-neutral w-full bg-black hover:bg-black/80 ${
+                    loader
+                      ? "!bg-gray-600 !cursor-not-allowed !text-white animate-none"
+                      : ""
+                  }`}
+                  onClick={handleSend}
+                >
+                  {loader && <span className="loading loading-dots"></span>}
+                  Save PDF
                 </div>
               </div>
             </div>

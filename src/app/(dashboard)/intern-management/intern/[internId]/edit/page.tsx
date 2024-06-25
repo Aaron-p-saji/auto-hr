@@ -6,13 +6,18 @@ import { useRouter } from "next/navigation";
 import { PauseIcon, RecycleIcon, ServerOffIcon, Trash2 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { RegisterFields, registerSchema } from "@/providers/zodTypes";
+import {
+  RegisterFields,
+  UserFields,
+  registerSchema,
+} from "@/providers/zodTypes";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AsyncCreatableSelect from "react-select/async-creatable"; // Import AsyncCreatableSelect for async functionality
 import { debounce } from "lodash";
 import { useAuthStore } from "@/providers/context";
 import Link from "next/link";
+import { boolean } from "zod";
 
 type Props = {};
 
@@ -27,7 +32,7 @@ interface InstituteOption {
   value: string;
 }
 
-const CreateUser: React.FC<Props> = (props: Props) => {
+const CreateUser = (props: { params: { internId: string } }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAlert, setAlert] = useState(false);
   const [profilePic, setProfilePic] = useState<File[]>([]);
@@ -40,6 +45,8 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [country, setCountry] = useState<CountryOption | null>();
   const [institute, setInstitute] = useState<InstituteOption | null>();
+  const [user, setUser] = useState<UserFields | null>(null);
+  const [isUser, setIsUser] = useState(false);
   const router = useRouter();
 
   const {
@@ -47,6 +54,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
     handleSubmit,
     control,
     setValue,
+    reset,
     watch,
     clearErrors,
     formState: { errors, isValid },
@@ -73,6 +81,66 @@ const CreateUser: React.FC<Props> = (props: Props) => {
     }
   }, 300);
 
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        setIsLoading(true);
+        const res = await axios.get("http://localhost:8000/api/intern", {
+          params: {
+            id: `${props.params.internId}`,
+          },
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
+        });
+
+        if (res.status === 200) {
+          console.log(res.data);
+          setUser(res.data);
+          reset(res.data);
+          setIsUser(true);
+        } else {
+          setIsUser(false);
+        }
+      } catch (error) {
+        setIsUser(false);
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    if (institute == null) {
+      if (user?.institute) {
+        setInstitute({
+          label: user.institute,
+          value: user.institute,
+        });
+      }
+    }
+    if (country == null) {
+      if (user?.country) {
+        setCountry({
+          label: user.country,
+          value: user.country,
+        });
+      }
+    }
+
+    if (user?.dob) {
+      setValue("dob", new Date(user.dob));
+    }
+    if (user?.start_date) {
+      setValue("start_date", new Date(user.start_date));
+    }
+    if (user?.endDate) {
+      setValue("endDate", new Date(user.endDate));
+    }
+  }, [user]);
+
   const fetchInstitutes = debounce(async (inputValue: string) => {
     if (inputValue) {
       try {
@@ -93,23 +161,28 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   }, 300);
 
   const checkEmailExists = async (email: string) => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8000/api/check_email",
-        {
-          params: { email: email },
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().token}`,
-          },
+    if (email !== user?.email) {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/api/check_email",
+          {
+            params: { email: email },
+            headers: {
+              Authorization: `Bearer ${useAuthStore.getState().token}`,
+            },
+          }
+        );
+        if (response.status === 200) {
+          return true;
         }
-      );
-      if (response.status === 200) {
-        return response.data.exists;
+      } catch (error) {
+        return false;
       }
-    } catch (error) {
-      console.error("Error checking email:", error);
+      return false;
+    } else if (email === user.email) {
+      console.log("email === user email");
+      return false;
     }
-    return false;
   };
 
   const loadCountryOptions = async (inputValue: string) => {
@@ -166,9 +239,11 @@ const CreateUser: React.FC<Props> = (props: Props) => {
     if (email) {
       const timeoutId = setTimeout(async () => {
         const exists = await checkEmailExists(email);
-        if (exists) {
+        if (exists === true) {
+          console.log("why");
           setEmailError("Email already exists.");
         } else {
+          console.log("yeah");
           setEmailError(null);
         }
       }, 500);
@@ -190,103 +265,34 @@ const CreateUser: React.FC<Props> = (props: Props) => {
       } else {
         resData.append(key, value as string); // Append other values directly
       }
+      resData.append("intern_code", props.params.internId);
     });
-
-    if (profilePic) {
-      resData.append("intern_photo", profilePic[0]);
-
-      const imageScanData = new FormData();
-      imageScanData.append("file", profilePic[0]);
-
-      try {
-        const scanResponse = await axios.post(
-          "https://www.virustotal.com/api/v3/files",
-          imageScanData,
-          {
-            headers: {
-              "x-ApiKey":
-                "442b1f57eeec1355204ee89ce783193dfa9e3e246ef77af508ead0270cd4cddd",
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (ProgressEvent) => {
-              setText("Antivirus Check");
-            },
-          }
-        );
-
-        if (scanResponse.status === 200) {
-          const analysisId = scanResponse.data.data.id;
-          try {
-            const analysisResponse = await axios.get(
-              `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
-              {
-                headers: {
-                  "x-ApiKey":
-                    "442b1f57eeec1355204ee89ce783193dfa9e3e246ef77af508ead0270cd4cddd",
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-
-            if (analysisResponse.status === 200) {
-              const maliciousCount =
-                analysisResponse.data.data.attributes.stats.malicious;
-              if (maliciousCount === 0) {
-                try {
-                  const uploadResponse = await axios.post(
-                    "http://localhost:8000/api/intern/",
-                    resData,
-                    {
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                        Authorization: `Bearer ${
-                          useAuthStore.getState().token
-                        }`,
-                      },
-                      onUploadProgress: (progressEvent) => {
-                        if (progressEvent.lengthComputable) {
-                          if (
-                            progressEvent.progress !== null &&
-                            progressEvent.progress !== undefined
-                          ) {
-                            console.log(progressEvent.progress * 100);
-                            SetUploadProgress(
-                              Math.floor(Number(progressEvent.progress * 100))
-                            );
-                          }
-                        }
-                      },
-                    }
-                  );
-
-                  if (uploadResponse.status === 201) {
-                    router.replace("/");
-                  } else {
-                    setAlert(true);
-                    setTimeout(() => {
-                      setAlert(false);
-                    }, 1500);
-                  }
-                } catch (uploadError) {
-                  console.error("Error uploading user data:", uploadError);
-                  setAlert(true);
-                  setTimeout(() => {
-                    setAlert(false);
-                  }, 1500);
-                }
-              } else {
-                console.error("Malicious file detected.");
-              }
-            }
-          } catch (analysisError) {
-            console.error("Error retrieving analysis:", analysisError);
-          }
+    try {
+      const uploadResponse = await axios.patch(
+        "http://localhost:8000/api/intern/",
+        resData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
         }
-      } catch (scanError) {
-        console.error("Virus scan failed:", scanError);
-      } finally {
-        setIsLoading(false);
+      );
+
+      if (uploadResponse.status === 200) {
+        router.replace("/");
+      } else {
+        setAlert(true);
+        setTimeout(() => {
+          setAlert(false);
+        }, 1500);
       }
+    } catch (uploadError) {
+      console.error("Error uploading user data:", uploadError);
+      setAlert(true);
+      setTimeout(() => {
+        setAlert(false);
+      }, 1500);
     }
   };
 
@@ -331,6 +337,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                       placeholder=""
                       className="input input-bordered w-full disabled:bg-black/10"
                       disabled
+                      value={props.params.internId}
                     />
                   </label>
                 </div>
@@ -619,81 +626,14 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                 </div>
               </div>
             </div>
-            <div className="flex w-full space-x-2">
-              <label className={`form-control max-w-xs"`}>
-                <div className="label">
-                  <span className="label-text">Passport Size Photo</span>
-                </div>
-                <input
-                  type="file"
-                  className="file-input file-input-bordered max-w-xs"
-                  onChange={handleFileChange}
-                  accept=".png, .jpg, .jpeg"
-                />
-              </label>
-              {profilePic.length > 0 && (
-                <label className="form-control w-full">
-                  <div className="flex flex-col border-2 border-black/25 min-h-20 max-w-lg rounded-2xl p-4">
-                    <div className="flex justify-between">
-                      <div className="flex items-center space-x-2 cursor-pointer">
-                        <svg
-                          data-name="Layer 1"
-                          height="32"
-                          id="Layer_1"
-                          viewBox="0 0 32 32"
-                          width="32"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M4,16a6,6,0,0,1,12,0Z" fill="#ffba00" />
-                          <path
-                            d="M22,10a6,6,0,0,1-6,6V4a6,6,0,0,1,6,6"
-                            fill="#ea4435"
-                          />
-                          <path d="M28,16a6,6,0,0,1-12,0Z" fill="#0066da" />
-                          <path
-                            d="M10,22a6,6,0,0,1,6-6V28a6,6,0,0,1-6-6"
-                            fill="#00ac47"
-                          />
-                        </svg>
-                        <span>Image.png</span>
-                      </div>
-                      <div
-                        className="flex items-center space-x-2 cursor-pointer"
-                        onClick={() => removeFile(0)}
-                      >
-                        <Trash2
-                          size={18}
-                          className="hover:text-black/70 transition-all"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <div className="flex-grow">
-                        <progress
-                          className="progress progress-success !bg-black/25"
-                          color="#0aff70"
-                          defaultValue={0}
-                          value={String(progress)}
-                          max="100"
-                        ></progress>
-                      </div>
-                      <span>{String(progress)}%</span>
-                    </div>
-                  </div>
-                </label>
-              )}
-            </div>
+
             <div className="col-span-12 justify-center flex">
               <button
-                className={`btn btn-neutral w-[40%]  ${
-                  !isValid
-                    ? "disabled:bg-black/70 disabled:text-white"
-                    : "bg-black hover:bg-black/90"
-                }`}
+                className={`btn btn-neutral w-[40%]  bg-black hover:bg-black/90`}
                 type="submit"
-                disabled={isLoading || !isValid}
+                disabled={isLoading}
               >
-                Create User
+                Update Intern
                 {isLoading && (
                   <span className="loading loading-dots loading-md"></span>
                 )}
@@ -701,26 +641,6 @@ const CreateUser: React.FC<Props> = (props: Props) => {
             </div>
           </form>
         </div>
-      </div>
-      <div className="absolute right-10 bottom-5 flex items-center space-x-2 select-none">
-        <Link href="">
-          <svg
-            width="50"
-            height="39"
-            viewBox="0 0 100 89"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <title>Artboard 2</title>
-            <path
-              d="M45.292 44.5L0 89h100V0H0l45.292 44.5zM90 80H22l35.987-35.2L22 9h68v71z"
-              fill="#394EFF"
-              fill-rule="evenodd"
-            />
-          </svg>
-        </Link>
-        <span className="text-sm">
-          Files Checked By <br /> VirusTotal
-        </span>
       </div>
     </div>
   );

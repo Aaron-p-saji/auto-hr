@@ -5,13 +5,12 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import axios from "axios";
 import { useAuthStore } from "@/providers/context";
-import { user } from "@/providers/typeProviders";
-
+import { UserFields } from "@/providers/zodTypes";
 type Props = {};
 
 const Page = (props: Props) => {
-  const [userList, setUserList] = useState<user[]>([]);
-  const [filteredUserList, setFilteredUserList] = useState<user[]>([]);
+  const [userList, setUserList] = useState<UserFields[]>([]);
+  const [filteredUserList, setFilteredUserList] = useState<UserFields[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [alert, setAlert] = useState<boolean>(false);
   const [tableLoading, setTableLoading] = useState<boolean>(false);
@@ -19,7 +18,7 @@ const Page = (props: Props) => {
   useEffect(() => {
     const filtered = userList.filter(
       (user) =>
-        user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredUserList(filtered);
@@ -29,7 +28,7 @@ const Page = (props: Props) => {
     const fetchUserList = async () => {
       try {
         setTableLoading(true);
-        const res = await axios.get("http://localhost:8000/api/user/", {
+        const res = await axios.get("http://localhost:8000/api/intern/", {
           params: {
             all: true,
           },

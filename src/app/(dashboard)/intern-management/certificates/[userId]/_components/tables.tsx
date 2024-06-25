@@ -1,9 +1,9 @@
 "use client";
+import { certificate } from "@/providers/zodTypes";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { certificate } from "../page";
 
 type Props = {
   certiList: Array<certificate>;

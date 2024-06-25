@@ -15,12 +15,12 @@ import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import axios from "axios";
 import { useAuthStore } from "@/providers/context";
-import { user } from "@/providers/typeProviders";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ReactQuill from "react-quill";
 import parse from "html-react-parser";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { UserFields } from "@/providers/zodTypes";
 
 const playball = Playball({ weight: "400", subsets: ["latin"] });
 const playfair_500 = Playfair_Display({ weight: "500", subsets: ["latin"] });
@@ -79,7 +79,7 @@ function PDFGenerate() {
   const [headingUsed, setHeadingUsed] = useState(false);
   const [topTitle, setTopTitle] = useState("");
   const [userLoading, setUserLoading] = useState(false);
-  const [userList, setUserList] = useState<user[]>([]);
+  const [userList, setUserList] = useState<UserFields[]>([]);
   const [warning, setWarning] = useState(true);
   const [result, setResult] = useState(false);
   const [selectedUser, setSelectedUser] = useState<String>("");
