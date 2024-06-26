@@ -58,7 +58,9 @@ const Page = (props: Props) => {
   }, []);
   return (
     <div className="flex flex-col mt-[10vh] ml-[10%] w-[80%] space-y-[5vh] ">
-      <span className={`text-[3vw] font-uber_move`}>User Management</span>
+      <span className={`text-[3vw] font-uber_move font-bold`}>
+        User Management
+      </span>
       <div className="flex justify-between">
         <input
           type="text"
