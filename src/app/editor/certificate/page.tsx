@@ -16,9 +16,9 @@ import axios from "axios";
 import { UserFields } from "@/providers/zodTypes";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
-import { X } from "lucide-react";
+import { Ampersand, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { toast as alertT } from "sonner";
 const opensans = Open_Sans({ subsets: ["latin"] });
 const roboto = Roboto_Serif({ subsets: ["latin"] });
 
@@ -58,6 +58,9 @@ const Page = () => {
   const [loader, setLoader] = useState(false);
   const [warning, setWarning] = useState(true);
   const [result, setResult] = useState(false);
+  const [toast, setToast] = useState(0);
+  const [message, setMessage] = useState("");
+  const [iLoading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -128,47 +131,145 @@ const Page = () => {
     setSelectedUser(userList[0]);
   }, [useAuthStore.getState().token]);
 
-  const handleSend = async () => {
-    const certificate = document.querySelector(".certificate");
-    if (certificate instanceof HTMLElement) {
-      setLoader(true);
-      html2canvas(certificate, { scale: 3 }).then(async (canvas) => {
-        const imgData = canvas.toDataURL("image/png");
-        const doc = new jsPDF({
-          unit: "px",
-          format: [580, 821], // Adjusted to match the size of your certificate
-          compress: false,
-        });
-        doc.addImage(imgData, "PNG", 0, 0, 580, 821, "", "NONE");
-        const pdfOutput = doc.output("blob");
-
-        const formData = new FormData();
-        formData.append("file", pdfOutput, "certificate.pdf");
-        formData.append("user_id", String(selectedUser?.intern_code));
-
-        try {
-          if (selectedUser !== null) {
-            const res = await axios.post(
-              "http://localhost:8000/api/upload/",
-              formData,
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              }
-            );
-            console.log("Success:", res.data);
-            setResult(true);
-            setTimeout(() => {
-              setResult(false);
-            }, 1500);
-            router.push("/intern-management");
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          console.log(selectedUser);
+  const sendCertificate = async (filename: string) => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        "http://localhost:8000/api/sendcertificate/",
+        {
+          params: {
+            filename,
+          },
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
         }
-        setLoader(false);
+      );
+      if (res.status === 200) {
+        setToast(200);
+        setMessage(
+          "Email request was send to the server and will complete within 1hr"
+        );
+        setTimeout(() => {
+          setToast(0);
+        }, 1500);
+      }
+    } catch (error) {
+      setToast(500);
+      setMessage("Failed To Send Email");
+      setTimeout(() => {
+        setToast(0);
+      }, 1500);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (selectedUser) {
+      const certificate = document.querySelector(".certificate");
+      if (certificate instanceof HTMLElement) {
+        setLoader(true);
+        html2canvas(certificate, { scale: 3 }).then(async (canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const doc = new jsPDF({
+            unit: "px",
+            format: [580, 821], // Adjusted to match the size of your certificate
+            compress: false,
+          });
+          doc.addImage(imgData, "PNG", 0, 0, 580, 821, "", "NONE");
+          const pdfOutput = doc.output("blob");
+
+          const formData = new FormData();
+          formData.append("file", pdfOutput, "certificate.pdf");
+          formData.append("user_id", String(selectedUser?.intern_code));
+
+          try {
+            if (selectedUser !== null) {
+              const res = await axios.post(
+                "http://localhost:8000/api/upload/",
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              console.log("Success:", res.data);
+              setResult(true);
+              setTimeout(() => {
+                setResult(false);
+              }, 1500);
+              router.push("/intern-management");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            console.log(selectedUser);
+          }
+          setLoader(false);
+        });
+      }
+    } else {
+      alertT.error("An Inter should be selected", {
+        duration: 1500,
+        action: {
+          label: "Close",
+          onClick(event) {
+            alertT.dismiss(event.currentTarget.value);
+          },
+        },
+      });
+    }
+  };
+
+  const handleSave_Send = async () => {
+    const certificate = document.querySelector(".certificate");
+
+    if (selectedUser) {
+      if (certificate instanceof HTMLElement) {
+        setLoader(true);
+        html2canvas(certificate, { scale: 3 }).then(async (canvas) => {
+          const imgData = canvas.toDataURL("image/png");
+          const doc = new jsPDF({
+            unit: "px",
+            format: [580, 821], // Adjusted to match the size of your certificate
+            compress: false,
+          });
+          doc.addImage(imgData, "PNG", 0, 0, 580, 821, "", "NONE");
+          const pdfOutput = doc.output("blob");
+
+          const formData = new FormData();
+          formData.append("file", pdfOutput, "certificate.pdf");
+          formData.append("user_id", String(selectedUser?.intern_code));
+
+          try {
+            if (selectedUser !== null) {
+              const res = await axios.post(
+                "http://localhost:8000/api/upload/",
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              sendCertificate(String(res.data.filename).split(".")[0]);
+              setResult(true);
+              setTimeout(() => {
+                setResult(false);
+              }, 1500);
+              router.push("/intern-management");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            console.log(selectedUser);
+          }
+          setLoader(false);
+        });
+      }
+    } else {
+      alertT.error("An Inter should be selected", {
+        duration: 1500,
       });
     }
   };
@@ -402,9 +503,9 @@ const Page = () => {
                   </div>
                 </div>
               </div>
-              <div className="w-full h-fit flex">
+              <div className="w-full h-fit flex gap-2">
                 <div
-                  className={`btn btn-neutral w-full bg-black hover:bg-black/80 ${
+                  className={`btn btn-neutral flex-grow bg-black hover:bg-black/80 ${
                     loader
                       ? "!bg-gray-600 !cursor-not-allowed !text-white animate-none"
                       : ""
@@ -413,6 +514,19 @@ const Page = () => {
                 >
                   {loader && <span className="loading loading-dots"></span>}
                   Save PDF
+                </div>
+                <div
+                  className={`btn btn-neutral flex-grow bg-black hover:bg-black/80 ${
+                    loader
+                      ? "!bg-gray-600 !cursor-not-allowed !text-white animate-none"
+                      : ""
+                  }`}
+                  onClick={handleSave_Send}
+                >
+                  {loader && <span className="loading loading-dots"></span>}
+                  Save
+                  <span className="font-bold text-lg">&</span>
+                  Send PDF
                 </div>
               </div>
             </div>

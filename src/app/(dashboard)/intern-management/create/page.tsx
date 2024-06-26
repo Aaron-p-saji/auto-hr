@@ -13,6 +13,7 @@ import AsyncCreatableSelect from "react-select/async-creatable"; // Import Async
 import { debounce } from "lodash";
 import { useAuthStore } from "@/providers/context";
 import Link from "next/link";
+import { toast as alerT } from "sonner";
 
 type Props = {};
 
@@ -261,29 +262,37 @@ const CreateUser: React.FC<Props> = (props: Props) => {
 
                   if (uploadResponse.status === 201) {
                     router.replace("/");
+                    alerT.success("Successfully User Created", {
+                      duration: 1000,
+                    });
                   } else {
-                    setAlert(true);
-                    setTimeout(() => {
-                      setAlert(false);
-                    }, 1500);
+                    alerT.error("500 Internal Server Error", {
+                      duration: 1000,
+                      position: "top-center",
+                      icon: <ServerOffIcon />,
+                    });
                   }
                 } catch (uploadError) {
-                  console.error("Error uploading user data:", uploadError);
-                  setAlert(true);
-                  setTimeout(() => {
-                    setAlert(false);
-                  }, 1500);
+                  alerT.error("Error uploading user Data", {
+                    duration: 1000,
+                  });
                 }
               } else {
-                console.error("Malicious file detected.");
+                alerT.error("Malicious File Detected", {
+                  duration: 1000,
+                });
               }
             }
           } catch (analysisError) {
-            console.error("Error retrieving analysis:", analysisError);
+            alerT.error("Error Retrieveing Virus Scan", {
+              duration: 1000,
+            });
           }
         }
       } catch (scanError) {
-        console.error("Virus scan failed:", scanError);
+        alerT.error("Scan Failed", {
+          duration: 1000,
+        });
       } finally {
         setIsLoading(false);
       }

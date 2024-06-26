@@ -6,6 +6,8 @@ import Image from "next/image";
 import React, { MouseEventHandler, useEffect, useState } from "react";
 import SearchBar from "./_component/search";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast as alertT } from "sonner";
+import validator from "validator";
 
 type Props = {};
 
@@ -53,12 +55,12 @@ const Page = (props: Props) => {
       setFiles(newFiles);
     }
   };
-
   const removeFile = (index: number) => {
     setFiles(files.filter((file, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
     try {
       const data = new FormData();
       data.append("recipient", recipients);
@@ -67,28 +69,46 @@ const Page = (props: Props) => {
       files.map((item, index) => {
         data.append("files", item);
       });
-      const res = await axios.post(
-        "http://localhost:8000/api/sendmail/",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      if (recipients === "" && subject === "" && mailBody === "") {
+        alertT.warning("Missing Parameter", {
+          duration: 1500,
+        });
+      } else {
+        console.log(data);
+        if (validator.isEmail(recipients)) {
+          const res = await axios.post(
+            "http://localhost:8000/api/sendemail/",
+            data,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${useAuthStore.getState().token}`,
+              },
+            }
+          );
+          if (res.status === 200) {
+            alertT.success("Email Send Successfully", {
+              description: "Recipient will recieve the email within 24 hrs",
+              duration: 1500,
+            });
+          } else {
+            alertT.error(`Error ${res.status}`, {
+              description: `${res.data}`,
+              duration: 4000,
+            });
+          }
+        } else {
+          alertT.error(`${recipients} is not an email`, {
+            description: "Eg: admin@dev.com",
+            duration: 1500,
+          });
         }
-      );
-      if (res.status === 200) {
-        setToast(200);
-        setMessage("Email Successfully send");
-        setTimeout(() => {
-          setToast(0);
-        }, 1500);
       }
     } catch (error) {
-      setToast(500);
-      setMessage("Failed To Send Email");
-      setTimeout(() => {
-        setToast(0);
-      }, 1500);
+      alertT.error("Email Send Failed", {
+        description: "This is likely from the server side",
+        duration: 1500,
+      });
     }
   };
 
@@ -178,7 +198,7 @@ const Page = (props: Props) => {
                   className="btn btn-active btn-neutral flex-grow max-w-md"
                   type="submit"
                 >
-                  Neutral
+                  Send
                 </button>
               </div>
 

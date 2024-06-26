@@ -17,7 +17,7 @@ import AsyncCreatableSelect from "react-select/async-creatable"; // Import Async
 import { debounce } from "lodash";
 import { useAuthStore } from "@/providers/context";
 import Link from "next/link";
-import { boolean } from "zod";
+import { toast as alertT, toast } from "sonner";
 
 type Props = {};
 
@@ -155,7 +155,10 @@ const CreateUser = (props: { params: { internId: string } }) => {
           setInstituteOptions(institutes);
         }
       } catch (error) {
-        console.error("Error fetching institutes:", error);
+        alertT.error("Error Fetching Institutes", {
+          description: "This is likely from the server side",
+          duration: 1500,
+        });
       }
     }
   }, 300);
@@ -180,7 +183,6 @@ const CreateUser = (props: { params: { internId: string } }) => {
       }
       return false;
     } else if (email === user.email) {
-      console.log("email === user email");
       return false;
     }
   };
@@ -198,7 +200,10 @@ const CreateUser = (props: { params: { internId: string } }) => {
         return countries;
       }
     } catch (error) {
-      console.error("Error loading country options:", error);
+      alertT.error("Error Fetching Country", {
+        description: "This is likely from the server side",
+        duration: 1500,
+      });
     }
     return [];
   };
@@ -216,7 +221,10 @@ const CreateUser = (props: { params: { internId: string } }) => {
         return institutes;
       }
     } catch (error) {
-      console.error("Error loading institute options:", error);
+      alertT.error("Error Fetching Institutes", {
+        description: "This is likely from the server side",
+        duration: 1500,
+      });
     }
     return [];
   };
@@ -267,6 +275,7 @@ const CreateUser = (props: { params: { internId: string } }) => {
       }
       resData.append("intern_code", props.params.internId);
     });
+    const loading = alertT.loading("Updating user");
     try {
       const uploadResponse = await axios.patch(
         "http://localhost:8000/api/intern/",
@@ -281,18 +290,20 @@ const CreateUser = (props: { params: { internId: string } }) => {
 
       if (uploadResponse.status === 200) {
         router.replace("/");
+        alertT.success("Successfully Updated User", {
+          duration: 1500,
+        });
       } else {
-        setAlert(true);
-        setTimeout(() => {
-          setAlert(false);
-        }, 1500);
+        alertT.error("Updated User was unsuccessfull", {
+          duration: 1500,
+        });
       }
     } catch (uploadError) {
-      console.error("Error uploading user data:", uploadError);
-      setAlert(true);
-      setTimeout(() => {
-        setAlert(false);
-      }, 1500);
+      alertT.error("Updated User was unsuccessfull", {
+        duration: 1500,
+      });
+    } finally {
+      alertT.dismiss(loading);
     }
   };
 
@@ -309,16 +320,6 @@ const CreateUser = (props: { params: { internId: string } }) => {
 
   return (
     <div className="h-fit mt-[10vh] text-black ml-[10%] w-[80%]">
-      {isAlert && (
-        <div className="toast toast-top toast-center !w-[10vw]">
-          <div className="alert alert-error w-full">
-            <span className="flex space-x-3 w-full">
-              <ServerOffIcon />
-              Internal Server Error
-            </span>
-          </div>
-        </div>
-      )}
       <div className="flex flex-col space-y-[2vw]">
         <div>
           <span className={`text-6xl ${raleway.className}`}>Create Intern</span>

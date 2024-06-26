@@ -3,11 +3,11 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Raleway } from "next/font/google";
 // import { useUserStore } from "@/providers/context";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 // import { logout } from "@/functions/auth";
 import { boolean, string } from "zod";
-import { User } from "lucide-react";
+import { PlusIcon, User } from "lucide-react";
 import { logout } from "@/functions/auth";
 
 type Props = {};
@@ -18,6 +18,7 @@ const raleway_500 = Raleway({ weight: "700", subsets: ["latin"] });
 const Sidebar = (props: Props) => {
   //   const { first_name, email } = useUserStore();
   //   const { staff } = useUserStore();
+  const router = useRouter();
   const pathname = usePathname();
   const navlinks = [
     { name: "Intern Management", link: "/intern-management", adminOnly: true },
@@ -74,6 +75,17 @@ const Sidebar = (props: Props) => {
               )
             )
           )}
+          <li>
+            <div
+              onClick={() => {
+                router.push("/editor/certificate");
+              }}
+              className={`rounded-lg p-2 text-sm font-medium lg:w-full w-fit text-white bg-blue-500 flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-all`}
+            >
+              <PlusIcon className="" width={20} />
+              <span className="lg:block hidden">Create Certificate</span>
+            </div>
+          </li>
         </ul>
       </div>
 

@@ -6,13 +6,13 @@ import { Plus } from "lucide-react";
 import axios from "axios";
 import { useAuthStore } from "@/providers/context";
 import { UserFields } from "@/providers/zodTypes";
+import { toast as alertT } from "sonner";
 type Props = {};
 
 const Page = (props: Props) => {
   const [userList, setUserList] = useState<UserFields[]>([]);
   const [filteredUserList, setFilteredUserList] = useState<UserFields[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [alert, setAlert] = useState<boolean>(false);
   const [tableLoading, setTableLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -38,9 +38,18 @@ const Page = (props: Props) => {
         });
         if (res.status === 200) {
           setUserList(res.data);
+        } else {
+          alertT.error("An Unexpected Error Occured", {
+            description: `Error ${res.status}`,
+            duration: 2000,
+          });
         }
       } catch (error) {
         console.log(error);
+        alertT.error("An Unexpected Error Occured", {
+          description: `Error ${error}`,
+          duration: 2000,
+        });
       } finally {
         setTableLoading(false);
       }
@@ -49,27 +58,6 @@ const Page = (props: Props) => {
   }, []);
   return (
     <div className="flex flex-col mt-[10vh] ml-[10%] w-[80%] space-y-[5vh] ">
-      {alert && (
-        <div
-          role="alert"
-          className="alert alert-error w-[25vw] bottom-10 absolute right-10"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="stroke-current shrink-0 h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <span>Error! Fetch failed successfully.</span>
-        </div>
-      )}
       <span className={`text-[3vw] font-uber_move`}>User Management</span>
       <div className="flex justify-between">
         <input
