@@ -6,6 +6,8 @@ import { X } from "lucide-react";
 import { user } from "@/providers/typeProviders";
 import styles from "./search.module.css";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { UserFields } from "@/providers/zodTypes";
 
 type Props = {
   search?: string;
@@ -15,7 +17,7 @@ const Search = (props: Props) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<user[]>([]);
+  const [searchResults, setSearchResults] = useState<UserFields[]>([]);
   const [recipient, setRecipient] = useState("");
 
   const handleClose = () => {
@@ -42,7 +44,7 @@ const Search = (props: Props) => {
       if (search !== "") {
         try {
           const response = await axios.get(
-            `http://127.0.0.1:8000/api/user/?search=${search}`,
+            `http://127.0.0.1:8000/api/intern/?search=${search}`,
             {
               headers: {
                 Authorization: `Bearer ${useAuthStore.getState().token}`,
@@ -51,11 +53,14 @@ const Search = (props: Props) => {
           );
           setSearchResults(response.data);
         } catch (error) {
-          console.error("Error searching employees:", error);
+          toast.error("Recipient fetch Failed", {
+            description:
+              "This is likely from the server side enter email to continue",
+            duration: 2500,
+          });
         }
       }
     };
-
     if (search !== "") {
       handleSearch();
     } else {
@@ -97,7 +102,7 @@ const Search = (props: Props) => {
               onClick={() => handleSelectRecipient(item.email)}
               className="hover:overflow-hidden hover:bg-neutral-200 p-2 rounded-lg cursor-pointer"
             >
-              {item.first_name} • {item.email}
+              {item.full_name} • {item.email}
             </div>
           ))}
         </div>

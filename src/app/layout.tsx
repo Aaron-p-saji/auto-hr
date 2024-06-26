@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
+import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: {
     template: "%s | dominé",
@@ -16,6 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="winter">
+      <Toaster richColors />
       <body className="font-uber_move overflow-hidden">{children}</body>
     </html>
   );

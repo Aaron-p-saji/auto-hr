@@ -39,6 +39,7 @@ export type RegisterFields = {
 };
 
 export type UserFields = {
+  intern_code: string;
   full_name: string;
   dob: Date;
   job_title: JobType;
