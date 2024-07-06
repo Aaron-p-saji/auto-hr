@@ -9,11 +9,14 @@ import "react-datepicker/dist/react-datepicker.css";
 import { RegisterFields, registerSchema } from "@/providers/zodTypes";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import AsyncCreatableSelect from "react-select/async-creatable"; // Import AsyncCreatableSelect for async functionality
+import AsyncCreatableSelect from "react-select/async-creatable";
+import AsyncSelect from "react-select/async";
 import { debounce } from "lodash";
 import { useAuthStore } from "@/providers/context";
 import Link from "next/link";
 import { toast as alerT } from "sonner";
+import { newDate } from "react-datepicker/dist/date_utils";
+import { addDays, subYears } from "date-fns";
 
 type Props = {};
 
@@ -42,6 +45,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   const [country, setCountry] = useState<CountryOption | null>();
   const [institute, setInstitute] = useState<InstituteOption | null>();
   const router = useRouter();
+  const [startDate, setStartDate] = useState<Date>(new Date());
 
   const {
     register,
@@ -116,12 +120,17 @@ const CreateUser: React.FC<Props> = (props: Props) => {
   const loadCountryOptions = async (inputValue: string) => {
     try {
       const response = await axios.get(
-        `https://restcountries.com/v3.1/name/${inputValue}`
+        `http://127.0.0.1:8000/api/get_nationality/?name=${inputValue}`,
+        {
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
+        }
       );
       if (response.status === 200) {
         const countries = response.data.map((country: any) => ({
-          label: country.name.common,
-          value: country.name.common,
+          label: country.nicename,
+          value: country.id,
         }));
         return countries;
       }
@@ -147,12 +156,6 @@ const CreateUser: React.FC<Props> = (props: Props) => {
       console.error("Error loading institute options:", error);
     }
     return [];
-  };
-
-  const handleCreateCountry = async (inputValue: string) => {
-    const newOption = { label: inputValue, value: inputValue };
-    setOptions((prev) => [...prev, newOption]);
-    setValue("country", inputValue);
   };
 
   const handleCreateInstitute = async (inputValue: string) => {
@@ -378,7 +381,10 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                           onChange={(date) => {
                             field.onChange(date);
                           }}
-                          dateFormat="dd/MM/YYYY"
+                          maxDate={subYears(new Date(), 10)}
+                          minDate={subYears(new Date(), 100)}
+                          placeholderText="YYYY/MM/dd"
+                          dateFormat="YYYY/MM/dd"
                           className="input input-bordered w-full bg-transparent"
                         />
                       )}
@@ -441,7 +447,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                     </div>
                     <input
                       type="tel"
-                      placeholder="+91 94254 XXXXX"
+                      placeholder="94254 XXXXX"
                       className="input input-bordered w-full"
                       {...register("phone_number")}
                     />
@@ -460,33 +466,36 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                     <span className="label-text">Country</span>
                   </div>
                   <Controller
-                    name="country"
+                    name="nationality"
                     control={control}
                     render={({ field }) => (
-                      <AsyncCreatableSelect
+                      <AsyncSelect
                         {...field}
+                        id="personal__coutr__value"
                         isClearable
                         loadOptions={loadCountryOptions}
+                        aria-label="personal__coutr__value"
                         onChange={(selected) => {
-                          setValue("country", selected ? selected.value : "");
+                          setValue(
+                            "nationality",
+                            selected ? Number(selected.value) : 92
+                          );
                           setCountry(selected);
-                          clearErrors("country");
+                          clearErrors("nationality");
                         }}
                         onInputChange={(inputValue) => {
                           fetchCountries(inputValue);
                         }}
-                        onCreateOption={(inputValue) => {
-                          handleCreateCountry(inputValue);
-                          clearErrors("country");
-                        }}
                         value={country}
+                        instanceId={"personal__coutr__value"}
+                        auto-complete="countrrr"
                       />
                     )}
                   />
-                  {errors.country && (
+                  {errors.nationality && (
                     <div className="label">
                       <span className="label-text-alt text-red-500">
-                        {errors.country.message}
+                        {errors.nationality.message}
                       </span>
                     </div>
                   )}
@@ -517,6 +526,8 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                           clearErrors("institute");
                         }}
                         value={institute}
+                        instanceId={"personal__institute__value"}
+                        auto-complete="nothin"
                       />
                     )}
                   />
@@ -582,8 +593,11 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                           selected={field.value}
                           onChange={(date) => {
                             field.onChange(date);
+                            date instanceof Date && setStartDate(date);
                           }}
-                          dateFormat="dd/MM/YYYY"
+                          placeholderText="YYYY/MM/dd"
+                          maxDate={new Date()}
+                          dateFormat="YYYY/MM/dd"
                           className="input input-bordered w-full bg-transparent"
                         />
                       )}
@@ -610,9 +624,10 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                           selected={field.value}
                           onChange={(date) => {
                             field.onChange(date);
-                            console.log(date?.toISOString().split("T"));
                           }}
-                          dateFormat="dd/MM/yy"
+                          minDate={addDays(startDate, 7)}
+                          placeholderText="YYYY/MM/dd"
+                          dateFormat="YYYY/MM/dd"
                           className="input input-bordered w-full bg-transparent"
                         />
                       )}
@@ -700,7 +715,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
                     : "bg-black hover:bg-black/90"
                 }`}
                 type="submit"
-                disabled={isLoading || !isValid}
+                disabled={isLoading}
               >
                 Create User
                 {isLoading && (
@@ -723,7 +738,7 @@ const CreateUser: React.FC<Props> = (props: Props) => {
             <path
               d="M45.292 44.5L0 89h100V0H0l45.292 44.5zM90 80H22l35.987-35.2L22 9h68v71z"
               fill="#394EFF"
-              fill-rule="evenodd"
+              fillRule="evenodd"
             />
           </svg>
         </Link>
