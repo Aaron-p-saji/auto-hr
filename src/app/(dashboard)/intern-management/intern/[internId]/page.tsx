@@ -260,6 +260,8 @@ const Page = (props: { params: { internId: string } }) => {
                     width={1000}
                     height={1000}
                     alt="banner"
+                    placeholder="empty"
+                    priority={true}
                     className="w-full h-full object-cover rounded-xl absolute"
                   />
                   <div className="absolute w-full h-full bg-black/50 rounded-xl"></div>
@@ -271,13 +273,23 @@ const Page = (props: { params: { internId: string } }) => {
                     <div className="flex items-center space-x-4 flex-col md:flex-row w-full">
                       <div className="flex relative w-fit rounded-full border-8 border-white">
                         <div className="w-52 h-52 flex">
-                          <Image
-                            src={profilePic}
-                            alt="user-profile"
-                            width={1000}
-                            height={1000}
-                            className="rounded-full object-cover w-full"
-                          />
+                          {profilePic ? (
+                            <Image
+                              src={profilePic}
+                              alt="user-profile"
+                              width={1000}
+                              height={1000}
+                              className="rounded-full object-cover w-full"
+                            />
+                          ) : (
+                            <Image
+                              src={not_found}
+                              alt="user-profile"
+                              width={1000}
+                              height={1000}
+                              className="rounded-full object-cover w-full"
+                            />
+                          )}
                         </div>
                         <div className="bg-gray-900/50 absolute opacity-0 hover:opacity-100 transition-all w-full h-full rounded-full flex items-center flex-col justify-center">
                           <input
@@ -301,13 +313,37 @@ const Page = (props: { params: { internId: string } }) => {
                         <span>{user?.email}</span>
                       </div>
                     </div>
-                    <div>
+                    <div className="flex items-center space-x-5">
                       <Link
                         className="btn btn-info whitespace-nowrap"
                         href={`${props.params.internId}/edit`}
                       >
                         <span>Edit User</span>
                       </Link>
+                      <div className="dropdown dropdown-end">
+                        <div
+                          tabIndex={0}
+                          role="button"
+                          className="btn !bg-transparent rounded-full"
+                        >
+                          <EllipsisVertical />
+                        </div>
+                        <ul
+                          tabIndex={0}
+                          className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                        >
+                          <li>
+                            <Link
+                              href={`/editor/certificate?id=${user?.intern_code}&type=Offer Letter`}
+                            >
+                              <span>Send Offer Letter</span>
+                            </Link>
+                          </li>
+                          <li>
+                            <span>Send Another Letter</span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -380,7 +416,7 @@ const Page = (props: { params: { internId: string } }) => {
                                 </span>
                               </div>
                             ) : (
-                              <Link href={`/viewer/file/${item.filename}`}>
+                              <Link href={`/viewer/file/${item.filename}.pdf`}>
                                 <Image
                                   alt=""
                                   width={1000}

@@ -31,7 +31,7 @@ export type RegisterFields = {
   email: string;
   phone_number: string;
   institute: string;
-  country: string;
+  nationality: number;
   street_address: string;
   zip: string;
   start_date: Date;
@@ -46,7 +46,7 @@ export type UserFields = {
   email: string;
   phone_number: string;
   institute: string;
-  country: string;
+  nationality: number;
   street_address: string;
   zip: string;
   start_date: Date;
@@ -77,15 +77,15 @@ export const registerSchema: ZodType<RegisterFields> = z
     email: z.string().email({ message: "Invalid email address" }),
     phone_number: z
       .string()
-      .min(10, { message: "Phone Number should be at least 10 digits" })
+      .min(5, { message: "Phone Number should be at least 5 digits" })
       .max(15, { message: "Phone Number should not exceed 15 digits" })
-      .refine((val: string) => val.startsWith("+"), {
-        message: "Phone Number should start with '+'",
+      .refine((val: string) => !val.startsWith("+"), {
+        message: "Phone Number shouldn't start with '+'",
       }),
     institute: z.string({
       required_error: "Institution is required",
     }),
-    country: z.string({
+    nationality: z.number({
       required_error: "country is required",
     }),
     street_address: z.string({

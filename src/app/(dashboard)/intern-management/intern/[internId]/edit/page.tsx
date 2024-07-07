@@ -70,8 +70,8 @@ const CreateUser = (props: { params: { internId: string } }) => {
         );
         if (response.status === 200) {
           const countries = response.data.map((country: any) => ({
-            label: country.name.common,
-            value: country.name.common,
+            label: country.nicename,
+            value: country.id,
           }));
           setOptions(countries);
         }
@@ -112,6 +112,34 @@ const CreateUser = (props: { params: { internId: string } }) => {
     getUser();
   }, []);
 
+  const getCountryById = async (inputValue: Number) => {
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/api/get_nationality/?id=${inputValue}`,
+        {
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        return {
+          label: response.data.nicename,
+          value: response.data.id,
+        };
+      }
+    } catch (error) {
+      alertT.error("Error Fetching Country", {
+        description: "This is likely from the server side",
+        duration: 1500,
+      });
+    }
+    return {
+      label: "",
+      value: "",
+    };
+  };
+
   useEffect(() => {
     if (institute == null) {
       if (user?.institute) {
@@ -122,10 +150,12 @@ const CreateUser = (props: { params: { internId: string } }) => {
       }
     }
     if (country == null) {
-      if (user?.country) {
-        setCountry({
-          label: user.country,
-          value: user.country,
+      if (user?.nationality) {
+        const data = getCountryById(user.nationality).then((e) => {
+          setCountry({
+            label: e.label,
+            value: e.value,
+          });
         });
       }
     }
@@ -190,7 +220,7 @@ const CreateUser = (props: { params: { internId: string } }) => {
   const loadCountryOptions = async (inputValue: string) => {
     try {
       const response = await axios.get(
-        `https://restcountries.com/v3.1/name/${inputValue}`
+        `http://127.0.0.1:8000/api/get_nationality/?name=${inputValue}`
       );
       if (response.status === 200) {
         const countries = response.data.map((country: any) => ({
@@ -229,10 +259,10 @@ const CreateUser = (props: { params: { internId: string } }) => {
     return [];
   };
 
-  const handleCreateCountry = async (inputValue: string) => {
+  const handleCreateCountry = async (inputValue: any) => {
     const newOption = { label: inputValue, value: inputValue };
     setOptions((prev) => [...prev, newOption]);
-    setValue("country", inputValue);
+    setValue("nationality", inputValue);
   };
 
   const handleCreateInstitute = async (inputValue: string) => {
@@ -459,7 +489,7 @@ const CreateUser = (props: { params: { internId: string } }) => {
                     <span className="label-text">Country</span>
                   </div>
                   <Controller
-                    name="country"
+                    name="nationality"
                     control={control}
                     render={({ field }) => (
                       <AsyncCreatableSelect
@@ -467,25 +497,28 @@ const CreateUser = (props: { params: { internId: string } }) => {
                         isClearable
                         loadOptions={loadCountryOptions}
                         onChange={(selected) => {
-                          setValue("country", selected ? selected.value : "");
+                          setValue(
+                            "nationality",
+                            selected ? Number(selected.value) : 92
+                          );
                           setCountry(selected);
-                          clearErrors("country");
+                          clearErrors("nationality");
                         }}
                         onInputChange={(inputValue) => {
                           fetchCountries(inputValue);
                         }}
                         onCreateOption={(inputValue) => {
                           handleCreateCountry(inputValue);
-                          clearErrors("country");
+                          clearErrors("nationality");
                         }}
                         value={country}
                       />
                     )}
                   />
-                  {errors.country && (
+                  {errors.nationality && (
                     <div className="label">
                       <span className="label-text-alt text-red-500">
-                        {errors.country.message}
+                        {errors.nationality.message}
                       </span>
                     </div>
                   )}

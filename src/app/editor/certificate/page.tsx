@@ -17,12 +17,14 @@ import { UserFields } from "@/providers/zodTypes";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import { Ampersand, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast as alertT } from "sonner";
 const opensans = Open_Sans({ subsets: ["latin"] });
 const roboto = Roboto_Serif({ subsets: ["latin"] });
 
 const Page = () => {
+  const [user, setUser] = useState<UserFields | String>("");
+  const searchParams = useSearchParams();
   const modules = {
     toolbar: [
       [{ size: ["small", false, "large", "huge"] }],
@@ -61,6 +63,7 @@ const Page = () => {
   const [toast, setToast] = useState(0);
   const [message, setMessage] = useState("");
   const [iLoading, setLoading] = useState(false);
+  const [letter, setLetter] = useState("Offer Letter");
 
   const router = useRouter();
 
@@ -100,36 +103,6 @@ const Page = () => {
   const handleDoubleClick = () => {
     setResizeEnabled(!resizeEnabled);
   };
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setUserLoading(true);
-        const res = await axios.get("http://localhost:8000/api/intern/", {
-          params: {
-            all: true,
-          },
-          headers: {
-            Authorization: `Bearer ${useAuthStore.getState().token}`,
-          },
-        });
-        if (res.status === 200) {
-          setUserList(res.data);
-        } else {
-          console.log(res.status);
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-
-    if (useAuthStore.getState().token) {
-      fetchUser();
-    }
-    setSelectedUser(userList[0]);
-  }, [useAuthStore.getState().token]);
 
   const sendCertificate = async (filename: string) => {
     try {
@@ -281,6 +254,68 @@ const Page = () => {
   }, [selectedUser, desc, contDesc]);
 
   useEffect(() => {
+    const search_id = searchParams.get("id");
+    const send = searchParams.get("send");
+    const type = searchParams.get("type");
+    const fetchUser = async () => {
+      try {
+        setUserLoading(true);
+        const res = await axios.get("http://localhost:8000/api/intern/", {
+          params: {
+            all: true,
+          },
+          headers: {
+            Authorization: `Bearer ${useAuthStore.getState().token}`,
+          },
+        });
+        if (res.status === 200) {
+          setUserList(res.data);
+        } else {
+          console.log(res.status);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    if (useAuthStore.getState().token) {
+      fetchUser();
+    }
+    if (search_id) {
+      const getUserData = async () => {
+        try {
+          const res = await axios.get<UserFields | null>(
+            "http://localhost:8000/api/intern/",
+            {
+              params: {
+                id: search_id,
+              },
+              headers: {
+                Authorization: `Bearer ${useAuthStore.getState().token}`,
+              },
+            }
+          );
+          if (res.status === 200) {
+            if (res.data !== null) {
+              setSelectedUser(res.data);
+              console.log(user);
+            }
+          } else {
+            console.log(res.status);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      getUserData().then(() => {
+        if (type) {
+          setLetter(type);
+          router.push("/editor/certificate");
+        }
+      });
+    }
     handleChange(desc);
   }, []);
 
@@ -310,7 +345,7 @@ const Page = () => {
   }, []);
 
   return (
-    <div className="h-full w-full">
+    <div className="h-screen w-full">
       <div className="w-full h-full grid grid-rows-[auto] grid-cols-8 bg-stone-400 pattern ">
         <div className="col-span-1 bg-gray-100 flex flex-col items-center pt-5">
           <span className="text-black font-bold text-xl">Templates</span>
@@ -382,6 +417,20 @@ const Page = () => {
                 >
                   <Rnd
                     default={{
+                      x: 250,
+                      y: 138,
+                      width: 100,
+                      height: 30,
+                    }}
+                  >
+                    <div
+                      className={`text-black absolute hover:border-green-500 hover:border text-nowrap whitespace-nowrap font-black ${opensans.className}`}
+                    >
+                      {letter}
+                    </div>
+                  </Rnd>
+                  <Rnd
+                    default={{
                       x: 460,
                       y: 180,
                       width: 100,
@@ -421,113 +470,120 @@ const Page = () => {
             </TransformComponent>
           </TransformWrapper>
         </div>
-        <div className="col-span-2 bg-gray-100 flex flex-col items-center pt-5 space-y-4 ">
-          <div className="flex flex-col items-center scrollbar scrollbar-w-1 scrollbar-thumb-[#696969b1] scrollbar-thumb-rounded-full scrollbar-h-2 overflow-y-auto">
-            <span className="text-black font-bold text-xl">Data</span>
-            <div className={`p-4 !text-black space-y-14`}>
-              <ReactQuill
-                theme="snow"
-                value={desc}
-                onChange={handleChange}
-                modules={modules}
-                formats={formats}
-                placeholder="Type Here"
-                className={`h-[35%] ${roboto.className}`}
-              />
+        <div className="col-span-2 bg-gray-100 h-full min-w-52 relative">
+          <div className="flex flex-col items-center w-full h-full">
+            <div className="bg-gray-100 p-5 w-full">
+              <span className="text-black font-bold text-xl">Data</span>
+            </div>
+            <div className="p-4 !text-black space-y-4 h-full w-full relative overflow-y-auto">
+              <div className="h-80 min-w-fit">
+                <ReactQuill
+                  theme="snow"
+                  value={desc}
+                  onChange={handleChange}
+                  modules={modules}
+                  formats={formats}
+                  placeholder="Type Here"
+                  className={`h-full max-h-72 ${roboto.className} px-2`}
+                />
+              </div>
+              <div className="w-full">
+                <label className="label">
+                  <span className="label-text">Letter Type</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type here"
+                  className="input input-bordered w-full bg-transparent"
+                  value={letter}
+                  onChange={(e) => setLetter(e.target.value)}
+                />
+              </div>
               <div className="flex flex-col">
                 <label className="form-control w-full">
+                  <span className="label-text">Select Intern</span>
                   {userLoading ? (
-                    <>
-                      <div className="flex flex-col items-center mt-5">
-                        <div className="newtons-cradle">
-                          <div className="newtons-cradle__dot"></div>
-                          <div className="newtons-cradle__dot"></div>
-                          <div className="newtons-cradle__dot"></div>
-                          <div className="newtons-cradle__dot"></div>
-                        </div>
+                    <div className="flex flex-col items-center mt-5">
+                      <div className="newtons-cradle">
+                        <div className="newtons-cradle__dot"></div>
+                        <div className="newtons-cradle__dot"></div>
+                        <div className="newtons-cradle__dot"></div>
+                        <div className="newtons-cradle__dot"></div>
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <div className="label">
-                        <span className="label-text">Select Intern</span>
-                      </div>
-                      <select
-                        className="select select-bordered bg-transparent"
-                        onChange={(e) => {
+                    <select
+                      className="select select-bordered bg-transparent mt-2"
+                      onChange={(e) => {
+                        if (searchParams.get("if")) {
                           const selectedIntern = userList.find(
                             (val) => val.intern_code === e.target.value
                           );
-                          setSelectedUser(selectedIntern || null);
-                        }}
-                      >
-                        <option disabled selected>
-                          Select an option
+                          if (selectedIntern) setSelectedUser(selectedIntern);
+                        }
+                      }}
+                      value={selectedUser?.intern_code}
+                    >
+                      <option disabled selected>
+                        Select an option
+                      </option>
+                      {userList.map((intern, index) => (
+                        <option
+                          key={index}
+                          value={intern.intern_code}
+                          className="overflow-hidden text-ellipsis w-full"
+                        >
+                          {index + 1} • {intern.full_name} • {intern.email}
                         </option>
-                        {userList.map((intern, index) => (
-                          <option
-                            key={index}
-                            value={intern.intern_code}
-                            className="overflow-hidden text-ellipsis w-full"
-                          >
-                            {index + 1} • {intern.full_name} • {intern.email}
-                          </option>
-                        ))}
-                      </select>
-                    </>
+                      ))}
+                    </select>
                   )}
                 </label>
               </div>
-              <div className={`w-fit p-2 items-center flex flex-col space-y-4`}>
+              <div className="w-fit p-2 items-center flex flex-col space-y-2">
                 <span className="text-black font-bold text-xl">
                   Formattings
                 </span>
-                <div className="flex flex-col text-black text-sm items-center">
-                  <div>
-                    <span className="text-red-500">{"{{startDate}}"} - </span>
-                    <span className="text-blue-600">
-                      Replace with the selected start date in the document
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-red-500">{"{{endDate}}"} - </span>
-                    <span className="text-blue-600">
-                      Replace with the selected end date in the document
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-red-500">{"{{intern}}"} - </span>
-                    <span className="text-blue-600">
-                      Replace with the selected intern in the document
-                    </span>
-                  </div>
-                </div>
+                <ul className="list-disc list-inside text-sm text-blue-600">
+                  <li>
+                    <span className="text-red-500">{"{{startDate}}"}</span> -
+                    Replace with the selected start date in the document
+                  </li>
+                  <li>
+                    <span className="text-red-500">{"{{endDate}}"}</span> -
+                    Replace with the selected end date in the document
+                  </li>
+                  <li>
+                    <span className="text-red-500">{"{{intern}}"}</span> -
+                    Replace with the selected intern in the document
+                  </li>
+                </ul>
               </div>
               <div className="w-full h-fit flex gap-2">
-                <div
+                <button
                   className={`btn btn-neutral flex-grow bg-black hover:bg-black/80 ${
                     loader
                       ? "!bg-gray-600 !cursor-not-allowed !text-white animate-none"
                       : ""
                   }`}
                   onClick={handleSend}
+                  disabled={loader}
                 >
                   {loader && <span className="loading loading-dots"></span>}
                   Save PDF
-                </div>
-                <div
+                </button>
+                <button
                   className={`btn btn-neutral flex-grow bg-black hover:bg-black/80 ${
                     loader
                       ? "!bg-gray-600 !cursor-not-allowed !text-white animate-none"
                       : ""
                   }`}
                   onClick={handleSave_Send}
+                  disabled={loader}
                 >
                   {loader && <span className="loading loading-dots"></span>}
-                  Save
-                  <span className="font-bold text-lg">&</span>
-                  Send PDF
-                </div>
+                  Save & Send PDF
+                </button>
               </div>
             </div>
           </div>
